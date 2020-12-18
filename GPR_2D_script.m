@@ -4,30 +4,48 @@ warning('off','MATLAB:MKDIR:DirectoryExists')
 
 isSavePlots = true;
 
-struct_idx = 1;
+struct_idx = 4;
 eig_idx = 1;
+N_sample = 3; % number of sample points sampled in the long direction of the rectangle for GPR
+N_evaluate = 51; % number of points to evaluate error on
 
 save_appendage = '';
 
-data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\FOR COVAR EXPER output 07-Dec-2020 15-37-06\DATA N_struct188 RNG_offset0 07-Dec-2020 15-37-06.mat';
-plot_folder = replace(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\FOR COVAR EXPER output 07-Dec-2020 15-37-06\plots/' 'struct_idx_' num2str(struct_idx) '_eig_idx_' num2str(eig_idx) '/'],'\','/');
+% data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\FOR COVAR EXPER output 07-Dec-2020 15-37-06\DATA N_struct188 RNG_offset0 07-Dec-2020 15-37-06.mat';
+data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\N_struct1024 output 10-Dec-2020 14-02-57\DATA N_struct1024 RNG_offset0 10-Dec-2020 14-02-57.mat';
+regexp_idx = regexp(data_path,'\');
+data_dir = data_path(1:(regexp_idx(end)));
+plot_folder = replace([data_dir 'plots/' 'struct_idx_'...
+                       num2str(struct_idx) '_eig_idx_' num2str(eig_idx) '_N_samp_' num2str(N_sample) '_N_eval_' num2str(N_evaluate) '/'],'\','/');
 mkdir(plot_folder)
 data = load(data_path,'EIGENVALUE_DATA','WAVEVECTOR_DATA','CONSTITUTIVE_DATA');
-
-N_sample = 3; % number of sample points sampled in the long direction of the rectangle for GPR
-N_evaluate = 21;
 
 EIGENVALUE_DATA = data.EIGENVALUE_DATA;
 WAVEVECTOR_DATA = data.WAVEVECTOR_DATA;
 
-% EIGENVALUE_DATA = reshape(EIGENVALUE_DATA,100,8,60,60);
-% EIGENVALUE_DATA = permute(EIGENVALUE_DATA,[1 2 4 3]);
-% EIGENVALUE_DATA = reshape(EIGENVALUE_DATA,100,8,3600);
+[N_wv,N_eig,N_struct] = size(EIGENVALUE_DATA);
 
-% covariance = cov(squeeze(EIGENVALUE_DATA(:,eig_idx,:))');
+% Cs = cov4D(WAVEVECTOR_DATA,EIGENVALUE_DATA);
 
-Cs = cov4D(WAVEVECTOR_DATA,EIGENVALUE_DATA);
+wv = WAVEVECTOR_DATA(:,:,1);
+[~,idxs] = sort(wv(:,2));
+WAVEVECTOR_DATA = WAVEVECTOR_DATA(idxs,:,:);
+EIGENVALUE_DATA = EIGENVALUE_DATA(idxs,:,:);
+for eig_idx_iter = 1:N_eig
+    temp = cov(squeeze(EIGENVALUE_DATA(:,eig_idx_iter,:))');
+    Cs{eig_idx_iter} = reshape(temp,51,51,51,51);
+end
+
 covariance = Cs{eig_idx};
+
+% fig = figure();
+% ax = axes(fig);
+% hold(ax,'on')
+% for eig_idx = 1:8
+% fr = squeeze(EIGENVALUE_DATA(:,eig_idx,struct_idx));
+% wv = squeeze(WAVEVECTOR_DATA(:,:,struct_idx));
+% plot_dispersion_surface(wv,fr,'rectangle',51,51,ax)
+% end
 
 fr = squeeze(EIGENVALUE_DATA(:,eig_idx,struct_idx));
 wv = squeeze(WAVEVECTOR_DATA(:,:,struct_idx));
@@ -51,8 +69,10 @@ function plot_output(out,isUseSqexp,isSavePlots,save_appendage,plot_folder)
     
     if isUseSqexp
         save_appendage = [save_appendage 'sqexp'];
+        sqexp_or_empir = 'sq. exp.';
     else
         save_appendage = [save_appendage 'empirical'];
+        sqexp_or_empir = 'empir.';
     end
     
     fig = figure2();
@@ -66,18 +86,18 @@ function plot_output(out,isUseSqexp,isSavePlots,save_appendage,plot_folder)
         save_in_all_formats(fig,['true_dispersion_' save_appendage],plot_folder,true)
     end
     
-    figure2()
+    fig = figure2();
     hold on
     surf(out.X_e,out.Y_e,out.Z_pred)
     scatter3(reshape(out.X_s,1,[]),reshape(out.Y_s,1,[]),reshape(out.Z_s,1,[]),'MarkerFaceColor','r')
-    title('Predicted')
+    title(['Predicted - ' sqexp_or_empir newline 'L^2 error: ' num2str(out.e_L2) ' || H^1 error: ' num2str(out.e_H1)])
     view(3)
     if isSavePlots
         fig = fix_pdf_border(fig);
         save_in_all_formats(fig,['predicted_dispersion_' save_appendage],plot_folder,false)
     end
     
-    figure2()
+    fig = figure2();
     hold on
     if ~isUseSqexp
         new_cov_s = covariance_function(out.wv_s',out.wv_s',out.original_domain_X,out.original_domain_Y,out.covariance);
@@ -88,7 +108,7 @@ function plot_output(out,isUseSqexp,isSavePlots,save_appendage,plot_folder)
     set(gca,'YDir','reverse')
     colorbar('location','west')
     set(gca,'colorscale','log')
-    add_top_labels(gca,out)
+%     add_top_labels(gca,out)
     if isSavePlots
         fig = fix_pdf_border(fig);
         save_in_all_formats(fig,['covariance_' save_appendage],plot_folder,false)
@@ -106,8 +126,6 @@ function add_top_labels(ax,out)
     % set the same Limits and Ticks on ax2 as on ax1;
     set(ax2, 'XLim', get(ax1, 'XLim'),'YLim', get(ax1, 'YLim'));
     set(ax2, 'XTick', get(ax1, 'XTick'), 'YTick', get(ax1, 'YTick'));
-    % c = colorbar(ax2,'Visible','on');
-    % OppTickLabels = {'a' 'b' 'c' 'd' 'e' 'f' 'g' 'h' 'i' 'j' 'k'}
     for i = 1:(size(out.wv_s,2) + 2)
         if i == 1 || i == (size(out.wv_s,2) + 2)
             OppTickLabels{i} = '';

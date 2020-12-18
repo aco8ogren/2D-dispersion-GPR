@@ -13,9 +13,9 @@ function out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options)
     % N_k = get_N_k(N_wv); % tri
     N_k = sqrt(N_wv); % rect
     
-    X = reshape(wv(:,1),N_k,N_k);
-    Y = reshape(wv(:,2),N_k,N_k);
-    Z = reshape(fr,N_k,N_k);
+    X = reshape(wv(:,1),N_k,N_k)';
+    Y = reshape(wv(:,2),N_k,N_k)';
+    Z = reshape(fr,N_k,N_k)';
     
     original_domain_X = X(1,:);
     original_domain_Y = Y(:,1)';
@@ -28,9 +28,9 @@ function out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options)
     Z_s = interp2(X,Y,Z,X_s,Y_s);
     Z_e = interp2(X,Y,Z,X_e,Y_e);
     
-    wv_s = [reshape(X_s,1,[]) ; reshape(Y_s,1,[])];
+    wv_s = [reshape(X_s,1,[]); reshape(Y_s,1,[])];
     fr_s = reshape(Z_s,1,[]);
-    wv_e = [reshape(X_e,1,[]) ; reshape(Y_e,1,[])];
+    wv_e = [reshape(X_e,1,[]); reshape(Y_e,1,[])];
     fr_e = reshape(Z_e,1,[]);
     
     original_covariance = covariance;
@@ -44,11 +44,20 @@ function out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options)
             'Sigma',1e-14,...
             'ConstantSigma',true);
     else
+        % Define a strict squared exponential so that GPR doesn't try to
+        % optimize the fit with kernel parameters
+        phi = [mean(std(wv_s'));std(fr_s')/sqrt(2)];        
+        kfcn = @(XN,XM,theta) (phi(2)^2)*exp(-(pdist2(XN,XM).^2)/(phi(1)^2));
+        
         model = fitrgp(wv_s',fr_s',...
             'Sigma',1e-14,...
-            'ConstantSigma',true);
-        sigma_L = model.KernelInformation.KernelParameters(1);
-        sigma_F = model.KernelInformation.KernelParameters(2);
+            'ConstantSigma',true,...
+            'KernelParameters',0,...
+            'KernelFunction',kfcn);
+%         sigma_L = model.KernelInformation.KernelParameters(1);
+%         sigma_F = model.KernelInformation.KernelParameters(2);
+        sigma_L = phi(1);
+        sigma_F = phi(2);
         covariance = [];        
         for i = 1:size(wv_s,2)
             for j = 1:size(wv_s,2)
@@ -64,10 +73,12 @@ function out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options)
     % err = fr_pred - fr_e; % in vector format
     Z_err = Z_pred - Z_e; % in matrix format
     [grad_x,grad_y] = gradient(Z_err,h_x,h_y);
-    derrdgamma = cat(1,grad_x,grad_y);
+    derrdgamma = cat(3,grad_x,grad_y);
     
-    e_L2 = sqrt(sum(Z_err.^2,'all')*h_x*h_y);
-    e_H1 = sqrt(sum(sqrt(derrdgamma(1,:,:).^2 + derrdgamma(2,:,:).^2),'all')*h_x*h_y);
+    e_L2_old = sqrt(sum(Z_err.^2,'all')*h_x*h_y);
+    e_L2 = LP_norm(X_e,Y_e,Z_err,2);
+    e_H1_old = sqrt(sum(sqrt(derrdgamma(:,:,1).^2 + derrdgamma(:,:,2).^2),'all')*h_x*h_y);
+    e_H1 = H1_norm(X_e,Y_e,Z_err);
     
     out.e_L2 = e_L2;
     out.e_H1 = e_H1;
