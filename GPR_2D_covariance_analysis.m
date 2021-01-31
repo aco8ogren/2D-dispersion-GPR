@@ -1,17 +1,21 @@
 close all;
+% =========================================================================
+% MUST BE RUN IN MATLAB R2020a (or maybe a later version would be okay too)
+% =========================================================================
 
 warning('off','MATLAB:MKDIR:DirectoryExists')
 
-isSavePlots = true;
+isSavePlots = false;
+isUseHomemade = true;
 
 % N_sample = 9; % number of sample points sampled in the long direction of the rectangle for GPR
 % N_samples = 3:2:21;
 N_samples = 3:2:21;
-% N_evaluate = 1001; % number of points to evaluate error on
+N_evaluate = 501; % number of points to evaluate error on
 
 plot_pause = length(N_samples); % Give plots time to resize before trying to fix their border and save them
 
-save_appendage = '';
+save_appendage = 'NoBasisFunction';
 
 data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\FOR COVAR EXPER output 07-Dec-2020 15-37-06\DATA N_struct188 RNG_offset0 07-Dec-2020 15-37-06.mat';
 % data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\N_struct1024 output 10-Dec-2020 14-02-57\DATA N_struct1024 RNG_offset0 10-Dec-2020 14-02-57.mat';
@@ -59,10 +63,19 @@ for N_sample_idx = 1:length(N_samples)
             options.isMakePlots = false;
             options.isUseEmpiricalCovariance = true;
             
-            out_emp = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options);
+            if isUseHomemade
+                out_emp = GPR2D_homemade(fr,wv,covariance,N_sample,N_evaluate,options);
+            else
+                out_emp = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options);
+            end
             
             options.isUseEmpiricalCovariance = false;
-            out_sqexp = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options);
+            
+            if isUseHomemade
+                out_sqexp = GPR2D_homemade(fr,wv,covariance,N_sample,N_evaluate,options);
+            else
+                out_sqexp = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options);
+            end
             
             e_L2_emp(eig_idx,struct_idx) = out_emp.e_L2;
             e_H1_emp(eig_idx,struct_idx) = out_emp.e_H1;

@@ -35,15 +35,15 @@ function out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options)
     
     original_covariance = covariance;
     
-%     idxs = (repmat(1:20,1,10) - 1)*10 + ceil((1:200)/20);
-%     wv_e = wv_e(:,idxs);
+
     
     if options.isUseEmpiricalCovariance
-        model = fitrgp(wv_s',fr_s','KernelFunction',@(wv_i,wv_j,theta) covariance_function(wv_i,wv_j,original_domain_X,original_domain_Y,original_covariance),...
-            'KernelParameters',0,...
-            'Sigma',1e-14,...
-            'ConstantSigma',true,...
-            'BasisFunction','none');
+        kfcn = @(wv_i,wv_j) covariance_function(wv_i,wv_j,original_domain_X,original_domain_Y,original_covariance);
+        x_train = wv_s';
+        y_train = fr_s';
+        sigma = 1e-4;
+        model = @(x_pred) create_model(x_pred,x_train,y_train,sigma,kfcn);
+        fr_pred = model(wv_e')';
     else
         % Define a strict squared exponential so that GPR doesn't try to
         % optimize the fit with kernel parameters
@@ -56,8 +56,6 @@ function out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options)
             'KernelParameters',0,...
             'KernelFunction',kfcn,...
             'BasisFunction','none');
-%         sigma_L = model.KernelInformation.KernelParameters(1);
-%         sigma_F = model.KernelInformation.KernelParameters(2);
         sigma_L = phi(1);
         sigma_F = phi(2);
         covariance = [];        
@@ -66,9 +64,9 @@ function out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options)
                 covariance(i,j) = sigma_F^2*exp(-.5*((wv_s(:,i) - wv_s(:,j))'*(wv_s(:,i) - wv_s(:,j)))/sigma_L^2);
             end
         end
+        
+        fr_pred = predict(model,wv_e')';
     end
-    
-    fr_pred = predict(model,wv_e')';
     
     Z_pred = reshape(fr_pred,ceil(N_evaluate/2),N_evaluate);
     
@@ -97,4 +95,13 @@ function out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options)
     out.original_domain_Y = original_domain_Y;
     out.covariance = covariance;
     out.model = model;
+end
+
+function y_pred = create_model(x_pred,x_train,y_train,sigma,kfcn)
+    % This function is intended to facilitate making function handles. I.e.
+    % call like model = @(x_pred)
+    % create_model(x_pred,x_train,y_train,sigma);
+    y_pred = kfcn(x_pred,x_train)*...
+        inv(kfcn(x_train,x_train) + sigma^2*eye(size(x_train,1),size(x_train,1)))*...
+        y_train;
 end
