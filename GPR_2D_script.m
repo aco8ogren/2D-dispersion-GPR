@@ -17,10 +17,12 @@ save_appendage = '';
 data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\N_struct1024 output 10-Dec-2020 14-02-57\DATA N_struct1024 RNG_offset0 10-Dec-2020 14-02-57.mat';
 regexp_idx = regexp(data_path,'\');
 data_dir = data_path(1:(regexp_idx(end)));
-plot_folder = replace([data_dir 'plots/' save_appendage ' struct_idx_'...
+plot_folder = replace([data_dir 'plots/' '_' save_appendage ' struct_idx_'...
     num2str(struct_idx) '_eig_idx_' num2str(eig_idx) '_N_samp_'...
     num2str(N_sample) '_N_eval_' num2str(N_evaluate) '/'],'\','/');
-mkdir(plot_folder)
+if isSavePlots
+    mkdir(plot_folder)
+end
 data = load(data_path,'EIGENVALUE_DATA','WAVEVECTOR_DATA','CONSTITUTIVE_DATA');
 
 EIGENVALUE_DATA = data.EIGENVALUE_DATA;
