@@ -5,17 +5,17 @@ close all;
 
 warning('off','MATLAB:MKDIR:DirectoryExists')
 
-isSavePlots = false;
+isSavePlots = true;
 isUseHomemade = true;
 
 % N_sample = 9; % number of sample points sampled in the long direction of the rectangle for GPR
 % N_samples = 3:2:21;
-N_samples = 3:2:21;
-N_evaluate = 501; % number of points to evaluate error on
+N_samples = 3:4:21;
+N_evaluate = 101; % number of points to evaluate error on
 
 plot_pause = length(N_samples); % Give plots time to resize before trying to fix their border and save them
 
-save_appendage = 'NoBasisFunction';
+save_appendage = 'Homemade_sig1e4_fwdslash';
 
 data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\FOR COVAR EXPER output 07-Dec-2020 15-37-06\DATA N_struct188 RNG_offset0 07-Dec-2020 15-37-06.mat';
 % data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\N_struct1024 output 10-Dec-2020 14-02-57\DATA N_struct1024 RNG_offset0 10-Dec-2020 14-02-57.mat';
@@ -23,7 +23,7 @@ data = load(data_path,'EIGENVALUE_DATA','WAVEVECTOR_DATA','CONSTITUTIVE_DATA');
 regexp_idx = regexp(data_path,'\');
 data_dir = data_path(1:(regexp_idx(end)));
 script_start_time = replace(char(datetime),':','-');
-plot_folder = replace([data_dir 'plots/covariance_analysis N_sample_' num2str(min(N_samples)) 'to' num2str(max(N_samples)) ' N_evaluate_' num2str(N_evaluate) ' ' script_start_time '/'],'\','/');
+plot_folder = replace([data_dir 'plots/covariance_analysis ' save_appendage ' N_sample_' num2str(min(N_samples)) 'to' num2str(max(N_samples)) ' N_evaluate_' num2str(N_evaluate) ' ' script_start_time '/'],'\','/');
 % plot_folder = replace([data_dir 'plots/covar_analys N_samp_' num2str(min(N_samples)) 'to' num2str(max(N_samples)) ' N_eval_' num2str(N_evaluate) ' ' script_start_time '/'],'\','/');
 mkdir(plot_folder)
 

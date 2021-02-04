@@ -2,11 +2,13 @@ clear; close all;
 
 warning('off','MATLAB:MKDIR:DirectoryExists')
 
-isSavePlots = true;
+isSavePlots = false;
+isUseHomemade = true;
+isMeasureRank = false;
 
 struct_idx = 4;
-eig_idx = 1;
-N_sample = 3; % number of sample points sampled in the long direction of the rectangle for GPR
+eig_idx = 3;
+N_sample = 11; % number of sample points sampled in the long direction of the rectangle for GPR
 N_evaluate = 51; % number of points to evaluate error on
 
 save_appendage = '';
@@ -15,8 +17,9 @@ save_appendage = '';
 data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\N_struct1024 output 10-Dec-2020 14-02-57\DATA N_struct1024 RNG_offset0 10-Dec-2020 14-02-57.mat';
 regexp_idx = regexp(data_path,'\');
 data_dir = data_path(1:(regexp_idx(end)));
-plot_folder = replace([data_dir 'plots/' 'struct_idx_'...
-                       num2str(struct_idx) '_eig_idx_' num2str(eig_idx) '_N_samp_' num2str(N_sample) '_N_eval_' num2str(N_evaluate) '/'],'\','/');
+plot_folder = replace([data_dir 'plots/' save_appendage ' struct_idx_'...
+    num2str(struct_idx) '_eig_idx_' num2str(eig_idx) '_N_samp_'...
+    num2str(N_sample) '_N_eval_' num2str(N_evaluate) '/'],'\','/');
 mkdir(plot_folder)
 data = load(data_path,'EIGENVALUE_DATA','WAVEVECTOR_DATA','CONSTITUTIVE_DATA');
 
@@ -33,6 +36,10 @@ WAVEVECTOR_DATA = WAVEVECTOR_DATA(idxs,:,:);
 EIGENVALUE_DATA = EIGENVALUE_DATA(idxs,:,:);
 for eig_idx_iter = 1:N_eig
     temp = cov(squeeze(EIGENVALUE_DATA(:,eig_idx_iter,:))');
+    if isMeasureRank
+        disp(['The rank of the 2D covariance matrix for the ' num2str(eig_idx_iter) ' branch is ' num2str(rank(temp)) ...
+            '. Compare to size of matrix which is ' num2str(size(temp))])
+    end
     Cs{eig_idx_iter} = reshape(temp,51,51,51,51);
 end
 
@@ -54,13 +61,23 @@ options = struct();
 options.isMakePlots = false;
 options.isUseEmpiricalCovariance = true;
 
-out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options);
+if isUseHomemade
+    out = GPR2D_homemade(fr,wv,covariance,N_sample,N_evaluate,options);
+else
+    out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options);
+end
 
 options.isUseEmpiricalCovariance = false;
-out_sqexp = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options);
+if isUseHomemade
+    out_sqexp = GPR2D_homemade(fr,wv,covariance,N_sample,N_evaluate,options);
+else
+    out_sqexp = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options);
+end
 
+disp('Empirical covariance results:')
 plot_output(out,false,isSavePlots,save_appendage,plot_folder);
 
+disp('Squared exponential results:')
 plot_output(out_sqexp,true,isSavePlots,save_appendage,plot_folder);
 
 function plot_output(out,isUseSqexp,isSavePlots,save_appendage,plot_folder)
@@ -108,7 +125,7 @@ function plot_output(out,isUseSqexp,isSavePlots,save_appendage,plot_folder)
     set(gca,'YDir','reverse')
     colorbar('location','west')
     set(gca,'colorscale','log')
-%     add_top_labels(gca,out)
+    %     add_top_labels(gca,out)
     if isSavePlots
         fig = fix_pdf_border(fig);
         save_in_all_formats(fig,['covariance_' save_appendage],plot_folder,false)
