@@ -35,35 +35,40 @@ function out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options)
     
     original_covariance = covariance;
     
+    sigma = 1e-2;
+    x_train = wv_s';
+    y_train = fr_s';
+    
     if options.isUseEmpiricalCovariance
         kfcn = @(wv_i,wv_j) covariance_function(wv_i,wv_j,original_domain_X,original_domain_Y,original_covariance);
-        x_train = wv_s';
-        y_train = fr_s';
-        sigma = 1e-4;
-        model = @(x_pred) create_model(x_pred,x_train,y_train,sigma,kfcn);
+        model = create_model(x_train,y_train,sigma,kfcn);
         fr_pred = model(wv_e')';
     else
         % Define a strict squared exponential so that GPR doesn't try to
         % optimize the fit with kernel parameters
         phi = [mean(std(wv_s'));std(fr_s')/sqrt(2)];        
-        kfcn = @(XN,XM,theta) (phi(2)^2)*exp(-(pdist2(XN,XM).^2)/(phi(1)^2));
+%         kfcn = @(XN,XM,theta) (phi(2)^2)*exp(-(pdist2(XN,XM).^2)/(phi(1)^2));
+%         
+%         model = fitrgp(wv_s',fr_s',...
+%             'Sigma',1e-14,...
+%             'ConstantSigma',true,...
+%             'KernelParameters',0,...
+%             'KernelFunction',kfcn,...
+%             'BasisFunction','none');
+%         fr_pred = predict(model,wv_e')';
         
-        model = fitrgp(wv_s',fr_s',...
-            'Sigma',1e-14,...
-            'ConstantSigma',true,...
-            'KernelParameters',0,...
-            'KernelFunction',kfcn,...
-            'BasisFunction','none');
-        sigma_L = phi(1);
-        sigma_F = phi(2);
-        covariance = [];        
-        for i = 1:size(wv_s,2)
-            for j = 1:size(wv_s,2)
-                covariance(i,j) = sigma_F^2*exp(-.5*((wv_s(:,i) - wv_s(:,j))'*(wv_s(:,i) - wv_s(:,j)))/sigma_L^2);
-            end
-        end
-        
-        fr_pred = predict(model,wv_e')';
+        kfcn = @(XN,XM) (phi(2)^2)*exp(-(pdist2(XN,XM).^2)/(phi(1)^2));
+        model = create_model(x_train,y_train,sigma,kfcn);
+        fr_pred = model(wv_e')';
+                
+%         sigma_L = phi(1);
+%         sigma_F = phi(2);
+%         covariance = [];        
+%         for i = 1:size(wv_s,2)
+%             for j = 1:size(wv_s,2)
+%                 covariance(i,j) = sigma_F^2*exp(-.5*((wv_s(:,i) - wv_s(:,j))'*(wv_s(:,i) - wv_s(:,j)))/sigma_L^2);
+%             end
+%         end  
     end
     
     Z_pred = reshape(fr_pred,ceil(N_evaluate/2),N_evaluate);
@@ -91,17 +96,14 @@ function out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options)
     out.wv_s = wv_s;
     out.original_domain_X = original_domain_X;
     out.original_domain_Y = original_domain_Y;
-    out.covariance = covariance;
+%     out.covariance = covariance;
     out.model = model;
 end
 
-function y_pred = create_model(x_pred,x_train,y_train,sigma,kfcn)
+function model = create_model(x_train,y_train,sigma,kfcn)
     % This function is intended to facilitate making function handles. I.e.
     % call like model = @(x_pred)
     % create_model(x_pred,x_train,y_train,sigma);
     alpha = (kfcn(x_train,x_train) + sigma^2*eye(size(x_train,1),size(x_train,1)))\y_train;
-    y_pred = kfcn(x_pred,x_train)*alpha;
-%     y_pred = kfcn(x_pred,x_train)*...
-%         inv(kfcn(x_train,x_train) + sigma^2*eye(size(x_train,1),size(x_train,1)))*...
-%         y_train;
+    model = @(x_pred) kfcn(x_pred,x_train)*alpha;
 end

@@ -4,11 +4,11 @@ warning('off','MATLAB:MKDIR:DirectoryExists')
 
 isSavePlots = false;
 isUseHomemade = true;
-isMeasureRank = false;
+isMeasureRank = true;
 
 struct_idx = 4;
 eig_idx = 3;
-N_sample = 11; % number of sample points sampled in the long direction of the rectangle for GPR
+N_sample = 7; % number of sample points sampled in the long direction of the rectangle for GPR
 N_evaluate = 51; % number of points to evaluate error on
 
 save_appendage = '';
@@ -116,22 +116,22 @@ function plot_output(out,isUseSqexp,isSavePlots,save_appendage,plot_folder)
         save_in_all_formats(fig,['predicted_dispersion_' save_appendage],plot_folder,false)
     end
     
-    fig = figure2();
-    hold on
-    if ~isUseSqexp
-        new_cov_s = covariance_function(out.wv_s',out.wv_s',out.original_domain_X,out.original_domain_Y,out.covariance);
-        imagesc(new_cov_s)
-    else
-        imagesc(out.covariance)
-    end
-    set(gca,'YDir','reverse')
-    colorbar('location','west')
-    set(gca,'colorscale','log')
-    %     add_top_labels(gca,out)
-    if isSavePlots
-        fig = fix_pdf_border(fig);
-        save_in_all_formats(fig,['covariance_' save_appendage],plot_folder,false)
-    end
+%     fig = figure2();
+%     hold on
+%     if ~isUseSqexp
+%         new_cov_s = covariance_function(out.wv_s',out.wv_s',out.original_domain_X,out.original_domain_Y,out.covariance);
+%         imagesc(new_cov_s)
+%     else
+%         imagesc(out.covariance)
+%     end
+%     set(gca,'YDir','reverse')
+%     colorbar('location','west')
+%     set(gca,'colorscale','log')
+%     %     add_top_labels(gca,out)
+%     if isSavePlots
+%         fig = fix_pdf_border(fig);
+%         save_in_all_formats(fig,['covariance_' save_appendage],plot_folder,false)
+%     end
     
 end
 

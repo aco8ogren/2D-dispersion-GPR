@@ -10,12 +10,12 @@ isUseHomemade = true;
 
 % N_sample = 9; % number of sample points sampled in the long direction of the rectangle for GPR
 % N_samples = 3:2:21;
-N_samples = 3:4:21;
+N_samples = 3:4:23;
 N_evaluate = 101; % number of points to evaluate error on
 
 plot_pause = length(N_samples); % Give plots time to resize before trying to fix their border and save them
 
-save_appendage = 'Homemade_sig1e4_fwdslash';
+save_appendage = 'Both_Homemade_sig1e-2_fwdslash';
 
 data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\FOR COVAR EXPER output 07-Dec-2020 15-37-06\DATA N_struct188 RNG_offset0 07-Dec-2020 15-37-06.mat';
 % data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\N_struct1024 output 10-Dec-2020 14-02-57\DATA N_struct1024 RNG_offset0 10-Dec-2020 14-02-57.mat';
