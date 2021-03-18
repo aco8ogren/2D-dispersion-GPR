@@ -7,6 +7,7 @@ warning('off','MATLAB:MKDIR:DirectoryExists')
 
 isSavePlots = true;
 isUseHomemade = true;
+isHighlightFirstStructure = false;
 
 % N_sample = 9; % number of sample points sampled in the long direction of the rectangle for GPR
 % N_samples = 3:2:21;
@@ -15,19 +16,21 @@ N_evaluate = 101; % number of points to evaluate error on
 
 plot_pause = length(N_samples); % Give plots time to resize before trying to fix their border and save them
 
-save_appendage = 'Both_Homemade_sig1e-2_fwdslash';
+save_appendage = '';
 
-data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\FOR COVAR EXPER output 07-Dec-2020 15-37-06\DATA N_struct188 RNG_offset0 07-Dec-2020 15-37-06.mat';
+% data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\FOR COVAR EXPER output 07-Dec-2020 15-37-06\DATA N_struct188 RNG_offset0 07-Dec-2020 15-37-06.mat';
 % data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\N_struct1024 output 10-Dec-2020 14-02-57\DATA N_struct1024 RNG_offset0 10-Dec-2020 14-02-57.mat';
+data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\Homog w dataset N_k51\DATA N_struct128 N_k51 RNG_offset0 14-Mar-2021 16-46-17.mat';
 data = load(data_path,'EIGENVALUE_DATA','WAVEVECTOR_DATA','CONSTITUTIVE_DATA');
 regexp_idx = regexp(data_path,'\');
 data_dir = data_path(1:(regexp_idx(end)));
 script_start_time = replace(char(datetime),':','-');
 plot_folder = replace([data_dir 'plots/covariance_analysis ' save_appendage ' N_sample_' num2str(min(N_samples)) 'to' num2str(max(N_samples)) ' N_evaluate_' num2str(N_evaluate) ' ' script_start_time '/'],'\','/');
 % plot_folder = replace([data_dir 'plots/covar_analys N_samp_' num2str(min(N_samples)) 'to' num2str(max(N_samples)) ' N_eval_' num2str(N_evaluate) ' ' script_start_time '/'],'\','/');
-mkdir(plot_folder)
-
-copyfile([mfilename('fullpath') '.m'],[plot_folder '/' mfilename '.m']);
+if isSavePlots
+    mkdir(plot_folder)
+    copyfile([mfilename('fullpath') '.m'],[plot_folder '/' mfilename '.m']);
+end
 
 EIGENVALUE_DATA = data.EIGENVALUE_DATA;
 WAVEVECTOR_DATA = data.WAVEVECTOR_DATA;
@@ -93,24 +96,36 @@ for N_sample_idx = 1:length(N_samples)
     % ax(plot_idx) = axes(fig(plot_idx));
     plot(ax(plot_idx,N_sample_idx),jitter(repmat(1:N_eig,N_struct,1)),e_L2_emp','k.')
     title(ax(plot_idx,N_sample_idx),['L2 emp ' title_appendage])
+    if isHighlightFirstStruct
+        hold(ax(plot_idx,N_sample_idx),'on'); scatter(ax(plot_idx,N_sample_idx),1:N_eig,e_L2_emp(:,1)','r.');
+    end
     
     plot_idx = 4;
     % fig(plot_idx) = figure2();
     % ax(plot_idx) = axes(fig(plot_idx));
     plot(ax(plot_idx,N_sample_idx),jitter(repmat(1:N_eig,N_struct,1)),e_H1_emp','k.')
     title(ax(plot_idx,N_sample_idx),['H1 emp ' title_appendage])
+    if isHighlightFirstStruct
+        hold(ax(plot_idx,N_sample_idx),'on'); scatter(ax(plot_idx,N_sample_idx),1:N_eig,e_H1_emp(:,1)','r.');
+    end
     
     plot_idx = 1;
     % fig(plot_idx) = figure2();
     % ax(plot_idx) = axes(fig(plot_idx));
     plot(ax(plot_idx,N_sample_idx),jitter(repmat(1:N_eig,N_struct,1)),e_L2_sqexp','k.')
     title(ax(plot_idx,N_sample_idx),['L2 sqexp ' title_appendage])
+    if isHighlightFirstStruct
+        hold(ax(plot_idx,N_sample_idx),'on'); scatter(ax(plot_idx,N_sample_idx),1:N_eig,e_L2_sqexp(:,1)','r.');
+    end
     
     plot_idx = 3;
     % fig(plot_idx) = figure2();
     % ax(plot_idx) = axes(fig(plot_idx));
     plot(ax(plot_idx,N_sample_idx),jitter(repmat(1:N_eig,N_struct,1)),e_H1_sqexp','k.')
     title(ax(plot_idx,N_sample_idx),['H1 sqexp ' title_appendage])
+    if isHighlightFirstStruct
+        hold(ax(plot_idx,N_sample_idx),'on'); scatter(ax(plot_idx,N_sample_idx),1:N_eig,e_H1_sqexp(:,1)','r.');
+    end
     
     % ax(1).YLim = ax(3).YLim;
     % ax(2).YLim = ax(4).YLim;
@@ -137,10 +152,10 @@ for f_idx = 1:3
     set_YLims(ax,orig_YLims);
 end
 
-if isSavePlots    
+if isSavePlots
     set(f,'WindowState','Maximized');
-    for i = 1:3        
-        set(fs(i),'WindowState','Maximized')        
+    for i = 1:3
+        set(fs(i),'WindowState','Maximized')
     end
     pause(plot_pause)
     f = fix_pdf_border(f);

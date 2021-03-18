@@ -4,17 +4,18 @@ warning('off','MATLAB:MKDIR:DirectoryExists')
 
 isSavePlots = false;
 isUseHomemade = true;
-isMeasureRank = true;
+isMeasureRank = false;
 
-struct_idx = 4;
-eig_idx = 3;
+struct_idx = 1;
+eig_idx = 8;
 N_sample = 7; % number of sample points sampled in the long direction of the rectangle for GPR
 N_evaluate = 51; % number of points to evaluate error on
 
 save_appendage = '';
 
 % data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\FOR COVAR EXPER output 07-Dec-2020 15-37-06\DATA N_struct188 RNG_offset0 07-Dec-2020 15-37-06.mat';
-data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\N_struct1024 output 10-Dec-2020 14-02-57\DATA N_struct1024 RNG_offset0 10-Dec-2020 14-02-57.mat';
+% data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\N_struct1024 output 10-Dec-2020 14-02-57\DATA N_struct1024 RNG_offset0 10-Dec-2020 14-02-57.mat';
+data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\Homog w dataset N_k51\DATA N_struct128 N_k51 RNG_offset0 14-Mar-2021 16-46-17.mat';
 regexp_idx = regexp(data_path,'\');
 data_dir = data_path(1:(regexp_idx(end)));
 plot_folder = replace([data_dir 'plots/' '_' save_appendage ' struct_idx_'...
@@ -29,7 +30,7 @@ EIGENVALUE_DATA = data.EIGENVALUE_DATA;
 WAVEVECTOR_DATA = data.WAVEVECTOR_DATA;
 
 [N_wv,N_eig,N_struct] = size(EIGENVALUE_DATA);
-
+N_k = sqrt(N_wv);
 % Cs = cov4D(WAVEVECTOR_DATA,EIGENVALUE_DATA);
 
 wv = WAVEVECTOR_DATA(:,:,1);
@@ -42,7 +43,7 @@ for eig_idx_iter = 1:N_eig
         disp(['The rank of the 2D covariance matrix for the ' num2str(eig_idx_iter) ' branch is ' num2str(rank(temp)) ...
             '. Compare to size of matrix which is ' num2str(size(temp))])
     end
-    Cs{eig_idx_iter} = reshape(temp,51,51,51,51);
+    Cs{eig_idx_iter} = reshape(temp,N_k,N_k,N_k,N_k);
 end
 
 covariance = Cs{eig_idx};
@@ -95,24 +96,29 @@ function plot_output(out,isUseSqexp,isSavePlots,save_appendage,plot_folder)
     end
     
     fig = figure2();
-    hold on
+    ax1 = axes(fig);
+    hold('on');
     surf(out.X_e,out.Y_e,out.Z_e)
     scatter3(reshape(out.X_s,1,[]),reshape(out.Y_s,1,[]),reshape(out.Z_s,1,[]),'MarkerFaceColor','r')
     title('True')
     view(3)
+%     colorbar;
+    fig = fix_pdf_border(fig);
     if isSavePlots
-        fig = fix_pdf_border(fig);
         save_in_all_formats(fig,['true_dispersion_' save_appendage],plot_folder,true)
     end
     
     fig = figure2();
+    ax2 = axes(fig);
     hold on
     surf(out.X_e,out.Y_e,out.Z_pred)
     scatter3(reshape(out.X_s,1,[]),reshape(out.Y_s,1,[]),reshape(out.Z_s,1,[]),'MarkerFaceColor','r')
     title(['Predicted - ' sqexp_or_empir newline 'L^2 error: ' num2str(out.e_L2) ' || H^1 error: ' num2str(out.e_H1)])
     view(3)
-    if isSavePlots
-        fig = fix_pdf_border(fig);
+%     colorbar; ax2.CLim = ax1.CLim;
+    ax2.XLim = ax1.XLim; ax2.YLim = ax1.YLim; ax2.ZLim = ax1.ZLim;
+    fig = fix_pdf_border(fig);
+    if isSavePlots        
         save_in_all_formats(fig,['predicted_dispersion_' save_appendage],plot_folder,false)
     end
     
