@@ -29,9 +29,7 @@ end
 
 [Cs,original_domain_X,original_domain_Y] = get_empirical_covariance(WAVEVECTOR_DATA,EIGENVALUE_DATA);
 
-original_covariance = Cs{eig_idx};
-
-kfcn = @(wv_i,wv_j) covariance_function(wv_i,wv_j,original_domain_X,original_domain_Y,original_covariance);
+kfcn = @(wv_i,wv_j) covariance_function(wv_i,wv_j,original_domain_X,original_domain_Y,Cs{eig_idx});
 
 fr = EIGENVALUE_DATA(:,eig_idx,struct_idx);
 wv = WAVEVECTOR_DATA(:,:,struct_idx);
