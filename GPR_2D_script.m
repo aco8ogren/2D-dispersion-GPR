@@ -24,57 +24,32 @@ plot_folder = replace([data_dir 'plots/' '_' save_appendage ' struct_idx_'...
 if isSavePlots
     mkdir(plot_folder)
 end
-data = load(data_path,'EIGENVALUE_DATA','WAVEVECTOR_DATA','CONSTITUTIVE_DATA');
 
-EIGENVALUE_DATA = data.EIGENVALUE_DATA;
-WAVEVECTOR_DATA = data.WAVEVECTOR_DATA;
+[WAVEVECTOR_DATA,EIGENVALUE_DATA] = load_dispersion_dataset(data_path);
 
-[N_wv,N_eig,N_struct] = size(EIGENVALUE_DATA);
-N_k = sqrt(N_wv);
-% Cs = cov4D(WAVEVECTOR_DATA,EIGENVALUE_DATA);
+[Cs,original_domain_X,original_domain_Y] = get_empirical_covariance(WAVEVECTOR_DATA,EIGENVALUE_DATA);
 
-wv = WAVEVECTOR_DATA(:,:,1);
-[~,idxs] = sort(wv(:,2));
-WAVEVECTOR_DATA = WAVEVECTOR_DATA(idxs,:,:);
-EIGENVALUE_DATA = EIGENVALUE_DATA(idxs,:,:);
-for eig_idx_iter = 1:N_eig
-    temp = cov(squeeze(EIGENVALUE_DATA(:,eig_idx_iter,:))');
-    if isMeasureRank
-        disp(['The rank of the 2D covariance matrix for the ' num2str(eig_idx_iter) ' branch is ' num2str(rank(temp)) ...
-            '. Compare to size of matrix which is ' num2str(size(temp))])
-    end
-    Cs{eig_idx_iter} = reshape(temp,N_k,N_k,N_k,N_k);
-end
+original_covariance = Cs{eig_idx};
 
-covariance = Cs{eig_idx};
+kfcn = @(wv_i,wv_j) covariance_function(wv_i,wv_j,original_domain_X,original_domain_Y,original_covariance);
 
-% fig = figure();
-% ax = axes(fig);
-% hold(ax,'on')
-% for eig_idx = 1:8
-% fr = squeeze(EIGENVALUE_DATA(:,eig_idx,struct_idx));
-% wv = squeeze(WAVEVECTOR_DATA(:,:,struct_idx));
-% plot_dispersion_surface(wv,fr,'rectangle',51,51,ax)
-% end
+fr = EIGENVALUE_DATA(:,eig_idx,struct_idx);
+wv = WAVEVECTOR_DATA(:,:,struct_idx);
 
-fr = squeeze(EIGENVALUE_DATA(:,eig_idx,struct_idx));
-wv = squeeze(WAVEVECTOR_DATA(:,:,struct_idx));
-
-options = struct();
 options.isMakePlots = false;
 options.isUseEmpiricalCovariance = true;
 
 if isUseHomemade
-    out = GPR2D_homemade(fr,wv,covariance,N_sample,N_evaluate,options);
+    out = GPR2D_homemade(fr,wv,kfcn,N_sample,N_evaluate,options);
 else
-    out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options);
+    out = GPR2D(fr,wv,kfcn,N_sample,N_evaluate,options);
 end
 
 options.isUseEmpiricalCovariance = false;
 if isUseHomemade
-    out_sqexp = GPR2D_homemade(fr,wv,covariance,N_sample,N_evaluate,options);
+    out_sqexp = GPR2D_homemade(fr,wv,kfcn,N_sample,N_evaluate,options);
 else
-    out_sqexp = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options);
+    out_sqexp = GPR2D(fr,wv,kfcn,N_sample,N_evaluate,options);
 end
 
 disp('Empirical covariance results:')
@@ -121,44 +96,4 @@ function plot_output(out,isUseSqexp,isSavePlots,save_appendage,plot_folder)
     if isSavePlots        
         save_in_all_formats(fig,['predicted_dispersion_' save_appendage],plot_folder,false)
     end
-    
-%     fig = figure2();
-%     hold on
-%     if ~isUseSqexp
-%         new_cov_s = covariance_function(out.wv_s',out.wv_s',out.original_domain_X,out.original_domain_Y,out.covariance);
-%         imagesc(new_cov_s)
-%     else
-%         imagesc(out.covariance)
-%     end
-%     set(gca,'YDir','reverse')
-%     colorbar('location','west')
-%     set(gca,'colorscale','log')
-%     %     add_top_labels(gca,out)
-%     if isSavePlots
-%         fig = fix_pdf_border(fig);
-%         save_in_all_formats(fig,['covariance_' save_appendage],plot_folder,false)
-%     end
-    
-end
-
-function add_top_labels(ax,out)
-    % First, store the handle to those axes.
-    % Next create a second set of axes,
-    % position This on top of the first and make it transparent.
-    ax1=ax;
-    ax2 = axes('Position', get(ax1, 'Position'),'Color', 'none');
-    set(ax2, 'XAxisLocation', 'top','YAxisLocation','Right');
-    % set the same Limits and Ticks on ax2 as on ax1;
-    set(ax2, 'XLim', get(ax1, 'XLim'),'YLim', get(ax1, 'YLim'));
-    set(ax2, 'XTick', get(ax1, 'XTick'), 'YTick', get(ax1, 'YTick'));
-    for i = 1:(size(out.wv_s,2) + 2)
-        if i == 1 || i == (size(out.wv_s,2) + 2)
-            OppTickLabels{i} = '';
-        else
-            OppTickLabels{i} = ['[' num2str(out.wv_s(1,i-1),3) ',' num2str(out.wv_s(2,i-1),3) ']'];
-        end
-    end
-    % Set the x-tick and y-tick  labels for the second axes
-    set(ax2, 'XTickLabel', OppTickLabels,'YTickLabel',OppTickLabels);
-    set(ax2,'YDir','reverse');
 end

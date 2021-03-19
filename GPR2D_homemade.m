@@ -1,4 +1,4 @@
-function out = GPR2D_homemade(fr,wv,covariance,N_sample,N_evaluate,options)
+function out = GPR2D_homemade(fr,wv,kfcn,N_sample,N_evaluate,options)
     
     if ~exist('options','var')
         options = struct();
@@ -6,7 +6,6 @@ function out = GPR2D_homemade(fr,wv,covariance,N_sample,N_evaluate,options)
         options.isUseEmpiricalCovariance = true;
     end
        
-    
     a = 1;
     
     N_wv = size(wv,1);
@@ -33,14 +32,14 @@ function out = GPR2D_homemade(fr,wv,covariance,N_sample,N_evaluate,options)
     wv_e = [reshape(X_e,1,[]); reshape(Y_e,1,[])];
     fr_e = reshape(Z_e,1,[]);
     
-    original_covariance = covariance;
+%     original_covariance = covariance;
     
     sigma = 1e-2;
     x_train = wv_s';
     y_train = fr_s';
     
     if options.isUseEmpiricalCovariance
-        kfcn = @(wv_i,wv_j) covariance_function(wv_i,wv_j,original_domain_X,original_domain_Y,original_covariance);
+%         kfcn = @(wv_i,wv_j) covariance_function(wv_i,wv_j,original_domain_X,original_domain_Y,original_covariance);
         model = create_GPR_model(x_train,y_train,sigma,kfcn);
         fr_pred = model.pred(wv_e')';
     else

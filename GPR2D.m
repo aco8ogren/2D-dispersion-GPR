@@ -1,4 +1,4 @@
-function out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options)
+function out = GPR2D(fr,wv,kfcn,N_sample,N_evaluate,options)
     
     if ~exist('options','var')
         options = struct();
@@ -33,13 +33,18 @@ function out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options)
     wv_e = [reshape(X_e,1,[]); reshape(Y_e,1,[])];
     fr_e = reshape(Z_e,1,[]);
     
-    original_covariance = covariance;
+%     original_covariance = covariance;
     
 %     idxs = (repmat(1:20,1,10) - 1)*10 + ceil((1:200)/20);
 %     wv_e = wv_e(:,idxs);
     
     if options.isUseEmpiricalCovariance
-        model = fitrgp(wv_s',fr_s','KernelFunction',@(wv_i,wv_j,theta) covariance_function(wv_i,wv_j,original_domain_X,original_domain_Y,original_covariance),...
+%         model = fitrgp(wv_s',fr_s','KernelFunction',@(wv_i,wv_j,theta) covariance_function(wv_i,wv_j,original_domain_X,original_domain_Y,original_covariance),...
+%             'KernelParameters',0,...
+%             'Sigma',1e-14,...
+%             'ConstantSigma',true,...
+%             'BasisFunction','none');
+        model = fitrgp(wv_s',fr_s','KernelFunction',@(wv_i,wv_j,theta) kfcn(wv_i,wv_j),...
             'KernelParameters',0,...
             'Sigma',1e-14,...
             'ConstantSigma',true,...
@@ -60,12 +65,12 @@ function out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options)
 %         sigma_F = model.KernelInformation.KernelParameters(2);
         sigma_L = phi(1);
         sigma_F = phi(2);
-        covariance = [];        
-        for i = 1:size(wv_s,2)
-            for j = 1:size(wv_s,2)
-                covariance(i,j) = sigma_F^2*exp(-.5*((wv_s(:,i) - wv_s(:,j))'*(wv_s(:,i) - wv_s(:,j)))/sigma_L^2);
-            end
-        end
+%         covariance = [];        
+%         for i = 1:size(wv_s,2)
+%             for j = 1:size(wv_s,2)
+%                 covariance(i,j) = sigma_F^2*exp(-.5*((wv_s(:,i) - wv_s(:,j))'*(wv_s(:,i) - wv_s(:,j)))/sigma_L^2);
+%             end
+%         end
     end
     
     fr_pred = predict(model,wv_e')';
@@ -95,6 +100,6 @@ function out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options)
     out.wv_s = wv_s;
     out.original_domain_X = original_domain_X;
     out.original_domain_Y = original_domain_Y;
-    out.covariance = covariance;
+%     out.covariance = covariance;
     out.model = model;
 end
