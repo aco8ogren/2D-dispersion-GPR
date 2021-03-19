@@ -1,4 +1,4 @@
-function out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options)
+function out = GPR2D_homemade(fr,wv,covariance,N_sample,N_evaluate,options)
     
     if ~exist('options','var')
         options = struct();
@@ -41,8 +41,8 @@ function out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options)
     
     if options.isUseEmpiricalCovariance
         kfcn = @(wv_i,wv_j) covariance_function(wv_i,wv_j,original_domain_X,original_domain_Y,original_covariance);
-        model = create_model(x_train,y_train,sigma,kfcn);
-        fr_pred = model(wv_e')';
+        model = create_GPR_model(x_train,y_train,sigma,kfcn);
+        fr_pred = model.pred(wv_e')';
     else
         % Define a strict squared exponential so that GPR doesn't try to
         % optimize the fit with kernel parameters
@@ -58,8 +58,8 @@ function out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options)
 %         fr_pred = predict(model,wv_e')';
         
         kfcn = @(XN,XM) (phi(2)^2)*exp(-(pdist2(XN,XM).^2)/(phi(1)^2));
-        model = create_model(x_train,y_train,sigma,kfcn);
-        fr_pred = model(wv_e')';
+        model = create_GPR_model(x_train,y_train,sigma,kfcn);
+        fr_pred = model.pred(wv_e')';
                 
 %         sigma_L = phi(1);
 %         sigma_F = phi(2);
@@ -98,12 +98,4 @@ function out = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options)
     out.original_domain_Y = original_domain_Y;
 %     out.covariance = covariance;
     out.model = model;
-end
-
-function model = create_model(x_train,y_train,sigma,kfcn)
-    % This function is intended to facilitate making function handles. I.e.
-    % call like model = @(x_pred)
-    % create_model(x_pred,x_train,y_train,sigma);
-    alpha = (kfcn(x_train,x_train) + sigma^2*eye(size(x_train,1),size(x_train,1)))\y_train;
-    model = @(x_pred) kfcn(x_pred,x_train)*alpha;
 end

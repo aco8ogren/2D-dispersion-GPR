@@ -7,7 +7,7 @@ isUseHomemade = true;
 isMeasureRank = false;
 
 struct_idx = 1;
-eig_idx = 8;
+eig_idx = 3;
 N_sample = 7; % number of sample points sampled in the long direction of the rectangle for GPR
 N_evaluate = 51; % number of points to evaluate error on
 
