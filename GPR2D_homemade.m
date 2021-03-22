@@ -39,35 +39,15 @@ function out = GPR2D_homemade(fr,wv,kfcn,N_sample,N_evaluate,options)
     y_train = fr_s';
     
     if options.isUseEmpiricalCovariance
-%         kfcn = @(wv_i,wv_j) covariance_function(wv_i,wv_j,original_domain_X,original_domain_Y,original_covariance);
         model = create_GPR_model(x_train,y_train,sigma,kfcn);
         fr_pred = model.pred(wv_e')';
     else
         % Define a strict squared exponential so that GPR doesn't try to
         % optimize the fit with kernel parameters
         phi = [mean(std(wv_s'));std(fr_s')/sqrt(2)];        
-%         kfcn = @(XN,XM,theta) (phi(2)^2)*exp(-(pdist2(XN,XM).^2)/(phi(1)^2));
-%         
-%         model = fitrgp(wv_s',fr_s',...
-%             'Sigma',1e-14,...
-%             'ConstantSigma',true,...
-%             'KernelParameters',0,...
-%             'KernelFunction',kfcn,...
-%             'BasisFunction','none');
-%         fr_pred = predict(model,wv_e')';
-        
         kfcn = @(XN,XM) (phi(2)^2)*exp(-(pdist2(XN,XM).^2)/(phi(1)^2));
         model = create_GPR_model(x_train,y_train,sigma,kfcn);
         fr_pred = model.pred(wv_e')';
-                
-%         sigma_L = phi(1);
-%         sigma_F = phi(2);
-%         covariance = [];        
-%         for i = 1:size(wv_s,2)
-%             for j = 1:size(wv_s,2)
-%                 covariance(i,j) = sigma_F^2*exp(-.5*((wv_s(:,i) - wv_s(:,j))'*(wv_s(:,i) - wv_s(:,j)))/sigma_L^2);
-%             end
-%         end  
     end
     
     Z_pred = reshape(fr_pred,ceil(N_evaluate/2),N_evaluate);
