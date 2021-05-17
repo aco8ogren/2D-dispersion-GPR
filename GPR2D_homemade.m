@@ -57,9 +57,7 @@ function out = GPR2D_homemade(fr,wv,kfcn,N_sample,N_evaluate,options)
     [grad_x,grad_y] = gradient(Z_err,h_x,h_y);
     derrdgamma = cat(3,grad_x,grad_y);
     
-    e_L2_old = sqrt(sum(Z_err.^2,'all')*h_x*h_y);
     e_L2 = LP_norm(X_e,Y_e,Z_err,2);
-    e_H1_old = sqrt(sum(sqrt(derrdgamma(:,:,1).^2 + derrdgamma(:,:,2).^2),'all')*h_x*h_y);
     e_H1 = H1_norm(X_e,Y_e,Z_err);
     
     out.e_L2 = e_L2;

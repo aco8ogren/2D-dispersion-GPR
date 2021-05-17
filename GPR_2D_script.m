@@ -6,16 +6,16 @@ isSavePlots = false;
 isUseHomemade = true;
 isMeasureRank = false;
 
-struct_idx = 1;
-eig_idx = 3;
+struct_idx = 3;
+eig_idx = 6;
 N_sample = 7; % number of sample points sampled in the long direction of the rectangle for GPR
 N_evaluate = 51; % number of points to evaluate error on
 
 save_appendage = '';
 
 % data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\FOR COVAR EXPER output 07-Dec-2020 15-37-06\DATA N_struct188 RNG_offset0 07-Dec-2020 15-37-06.mat';
-% data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\N_struct1024 output 10-Dec-2020 14-02-57\DATA N_struct1024 RNG_offset0 10-Dec-2020 14-02-57.mat';
-data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\Homog w dataset N_k51\DATA N_struct128 N_k51 RNG_offset0 14-Mar-2021 16-46-17.mat';
+data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\N_struct1024 output 10-Dec-2020 14-02-57\DATA N_struct1024 RNG_offset0 10-Dec-2020 14-02-57.mat';
+% data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\Homog w dataset N_k51\DATA N_struct128 N_k51 RNG_offset0 14-Mar-2021 16-46-17.mat';
 regexp_idx = regexp(data_path,'\');
 data_dir = data_path(1:(regexp_idx(end)));
 plot_folder = replace([data_dir 'plots/' '_' save_appendage ' struct_idx_'...
