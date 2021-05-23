@@ -39,8 +39,8 @@ function out = GPR2D_homemade(fr,wv,kfcn,N_sample,N_evaluate,options)
     y_train = fr_s';
     
     if options.isUseEmpiricalCovariance
-        model = create_GPR_model(x_train,y_train,sigma,kfcn);
-        fr_pred = model.pred(wv_e')';
+        model = create_GPR_model3(x_train,y_train,sigma,kfcn,[],'gridded');
+        fr_pred = model.pred(wv_e','gridded')';
     else
         % Define a strict squared exponential so that GPR doesn't try to
         % optimize the fit with kernel parameters

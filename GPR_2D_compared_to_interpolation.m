@@ -12,10 +12,11 @@ isHighlightFirstStructure = true;
 
 % N_sample = 9; % number of sample points sampled in the long direction of the rectangle for GPR
 % N_samples = 3:2:21;
-N_samples = [15]; N_samp_res = length(N_samples);
+N_samples = [7 13 21]; N_samp_res = length(N_samples);
 N_evaluate = 151; % number of points to evaluate error on
 
-model_names = {'GPR','linear','nearest','cubic','makima','spline'};
+% model_names = {'GPR','linear','nearest','cubic','makima','spline'};
+model_names = {'GPR','linear'};
 model_idxs = 1:length(model_names); N_model = length(model_names);
 
 plot_pause = length(N_samples); % Give plots time to resize before trying to fix their border and save them
@@ -24,7 +25,8 @@ save_appendage = '';
 
 % data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\FOR COVAR EXPER output 07-Dec-2020 15-37-06\DATA N_struct188 RNG_offset0 07-Dec-2020 15-37-06.mat';
 % data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\N_struct1024 output 10-Dec-2020 14-02-57\DATA N_struct1024 RNG_offset0 10-Dec-2020 14-02-57.mat';
-data_path = 'C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\Homog w dataset N_k51\DATA N_struct128 N_k51 RNG_offset0 14-Mar-2021 16-46-17.mat';
+data_path = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
+    '2D-dispersion-GPR\OUTPUT\Homog w dataset N_k51\DATA N_struct128 N_k51 RNG_offset0 14-Mar-2021 16-46-17.mat'];
 data = load(data_path,'EIGENVALUE_DATA','WAVEVECTOR_DATA','CONSTITUTIVE_DATA');
 regexp_idx = regexp(data_path,'\');
 data_dir = data_path(1:(regexp_idx(end)));
@@ -62,14 +64,17 @@ end
 original_wv_x = unique(sort(WAVEVECTOR_DATA(:,1,1)));
 original_wv_y = unique(sort(WAVEVECTOR_DATA(:,2,1)));
 
-for N_sample_idx = 1:length(N_samples)
-    N_sample = N_samples(N_sample_idx);
-    pfwb = parfor_wait(N_struct,'Waitbar', true);
-    for struct_idx = 1:N_struct
-        for eig_idx = 1:N_eig
-            C = Cs{eig_idx}; %#ok<PFBNS>
-            kfcn = @(wv_i,wv_j) covariance_function(wv_i,wv_j,original_wv_x,original_wv_y,C);
-            
+for eig_idx = 1:N_eig
+    C_struct = struct();
+    C_struct.C = Cs{eig_idx}; %#ok<PFBNS>
+    C_struct.C_gpu = gpuArray(reshape(Cs{eig_idx},length(original_wv_x),length(original_wv_y),length(original_wv_x),length(original_wv_y)));
+    C_struct.X_grid_vec = original_wv_x;
+    C_struct.Y_grid_vec = original_wv_y;
+    kfcn = @(wv_i,wv_j,query_format) covariance_function(wv_i,wv_j,query_format,C_struct);
+    
+    for N_sample_idx = 1:length(N_samples)
+        N_sample = N_samples(N_sample_idx);
+        for struct_idx = 1:N_struct
             fr = squeeze(EIGENVALUE_DATA(:,eig_idx,struct_idx));
             wv = squeeze(WAVEVECTOR_DATA(:,:,struct_idx));
             
@@ -87,9 +92,8 @@ for N_sample_idx = 1:length(N_samples)
                 err_H1(eig_idx,struct_idx,model_idx,N_sample_idx) = out.e_H1;
             end
         end
-        pfwb.Send; %#ok<PFBNS>
     end
-    pfwb.Destroy;
+    
     
     title_appendage = ['N_{sample} = ' num2str(N_sample)];
     
