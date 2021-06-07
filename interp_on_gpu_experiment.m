@@ -1,12 +1,12 @@
 clear; close all;
 
 N_sample = 10;
-N = 100;
-N_interps = [10 25 40 50 70 80 100 125];
+N = 50;
+N_interps = [10 25 40 50];
 
 X_grid_vec = linspace(0,1,N);
 
-setups = {'CPU','GPU (w/o bus)','GPU (w/ bus)'};
+setups = {'CPU','GPU (w/o bus)','GPU (w/ bus)','GPU (w/ gather)'};
 N_setup = length(setups);
 
 times = zeros(N_sample,length(N_interps),N_setup);
@@ -35,6 +35,13 @@ for setup_idx = 1:N_setup
                 tic
                 A_gpu = gpuArray(A);
                 B = interpn(X_grid_vec,X_grid_vec,X_grid_vec,X_grid_vec,A_gpu,X_grid_vec_interp',X_grid_vec_interp,X_grid_vec_interp,X_grid_vec_interp);
+                times(sample_idx,N_interp_idx,setup_idx) = toc;
+            elseif strcmp(setup,'GPU (w/ gather)')
+                A = rand(N,N,N,N);
+                A_gpu = gpuArray(A);
+                tic
+                B = interpn(X_grid_vec,X_grid_vec,X_grid_vec,X_grid_vec,A_gpu,X_grid_vec_interp',X_grid_vec_interp,X_grid_vec_interp,X_grid_vec_interp);
+                B = gather(B);
                 times(sample_idx,N_interp_idx,setup_idx) = toc;
             end
         end

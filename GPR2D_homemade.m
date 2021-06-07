@@ -1,27 +1,32 @@
-function out = GPR2D_homemade(fr,wv,kfcn,N_sample,N_evaluate,options)
+function out = GPR2D_homemade(fr,wv,N_wv,kfcn,N_sample,N_evaluate,options)
     
     if ~exist('options','var')
         options = struct();
         options.isMakePlots = false;
         options.isUseEmpiricalCovariance = true;
+        options.sigma_GPR = 1e-3;
     end
        
     a = 1;
     
-    N_wv = size(wv,1);
-    % N_k = get_N_k(N_wv); % tri
-    N_k = sqrt(N_wv); % rect
-    
-    X = reshape(wv(:,1),N_k,N_k)';
-    Y = reshape(wv(:,2),N_k,N_k)';
-    Z = reshape(fr,N_k,N_k)';
+%     N_wv = size(wv,1);
+%     % N_k = get_N_k(N_wv); % tri
+%     N_k = sqrt(N_wv); % rect
+%     
+%     X = reshape(wv(:,1),N_k,N_k)';
+%     Y = reshape(wv(:,2),N_k,N_k)';
+%     Z = reshape(fr,N_k,N_k)';
+
+    X = reshape(wv(:,1),N_wv(1),N_wv(2))';
+    Y = reshape(wv(:,2),N_wv(1),N_wv(2))';
+    Z = reshape(fr,N_wv(1),N_wv(2))';
     
     original_domain_X = X(1,:);
     original_domain_Y = Y(:,1)';
     
     [X_s,Y_s] = meshgrid(linspace(-pi/a,pi/a,N_sample),linspace(0,pi/a,ceil(N_sample/2)));
     [X_e,Y_e] = meshgrid(linspace(-pi/a,pi/a,N_evaluate),linspace(0,pi/a,ceil(N_evaluate/2)));
-    
+        
     h_x = X_e(1,2) - X_e(1,1); h_y = Y_e(2,1) - Y_e(1,1);
     
     Z_s = interp2(X,Y,Z,X_s,Y_s);
@@ -34,20 +39,22 @@ function out = GPR2D_homemade(fr,wv,kfcn,N_sample,N_evaluate,options)
     
 %     original_covariance = covariance;
     
-    sigma = 1e-2;
+%     sigma = 1e-3;
     x_train = wv_s';
     y_train = fr_s';
     
     if options.isUseEmpiricalCovariance
+        sigma = options.sigma_GPR;
         model = create_GPR_model3(x_train,y_train,sigma,kfcn,[],'gridded');
         fr_pred = model.pred(wv_e','gridded')';
     else
         % Define a strict squared exponential so that GPR doesn't try to
         % optimize the fit with kernel parameters
+        sigma = options.sigma_GPR;
         phi = [mean(std(wv_s'));std(fr_s')/sqrt(2)];        
-        kfcn = @(XN,XM) (phi(2)^2)*exp(-(pdist2(XN,XM).^2)/(phi(1)^2));
-        model = create_GPR_model(x_train,y_train,sigma,kfcn);
-        fr_pred = model.pred(wv_e')';
+        kfcn = @(XN,XM,query_format) (phi(2)^2)*exp(-(pdist2(XN,XM).^2)/(phi(1)^2));
+        model = create_GPR_model3(x_train,y_train,sigma,kfcn,[],'gridded');
+        fr_pred = model.pred(wv_e','gridded')';
     end
     
     Z_pred = reshape(fr_pred,ceil(N_evaluate/2),N_evaluate);

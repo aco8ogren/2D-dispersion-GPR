@@ -6,3 +6,5 @@ OUTPUT/
 *.pdf
 
 *.fig
+
+*.mat

@@ -1,4 +1,4 @@
-function C_interp = covariance_function(wv_i,wv_j,query_format,original_C_struct)
+function C_interp = covariance_function(wv_i,wv_j,query_format,original_C_struct,covariance_options)
     X_grid_vec = original_C_struct.X_grid_vec;
     Y_grid_vec = original_C_struct.Y_grid_vec;
     C = original_C_struct.C;
@@ -7,7 +7,7 @@ function C_interp = covariance_function(wv_i,wv_j,query_format,original_C_struct
     M = length(X_grid_vec);
     N = length(Y_grid_vec);
     if numel(C)~=M*N*M*N
-        warning('error in covariance_function')
+        error('error in covariance_function')
     end
     C4D = reshape(C,M,N,M,N);
     
@@ -26,11 +26,12 @@ function C_interp = covariance_function(wv_i,wv_j,query_format,original_C_struct
         wv_i_y = sort(unique(wv_i(:,2)));
         wv_j_x = sort(unique(wv_j(:,1)));
         wv_j_y = sort(unique(wv_j(:,2)));
-        if length(wv_i_x)*length(wv_i_y)*length(wv_j_x)*length(wv_j_y) > 40^4
+        if covariance_options.isAllowGPU && length(wv_i_x)*length(wv_i_y)*length(wv_j_x)*length(wv_j_y) > 40^4
             %             C4D_gpu = gpuArray(C4D);
             %             C4D_gpu = reshape(original_C_struct.C_gpu,M,N,M,N);
             C4D_gpu = original_C_struct.C_gpu;
             C_interp_4D = interpn(X_grid_vec,Y_grid_vec,X_grid_vec,Y_grid_vec,C4D_gpu,wv_i_x,wv_i_y',wv_j_x,wv_j_y'); % important that query vecs have different orientation on this line --> signals to interpn that query vecs are grid vecs in R^n.
+%             C_interp_4D = gather(C_interp_4D);
         else
             C_interp_4D = interpn(X_grid_vec,Y_grid_vec,X_grid_vec,Y_grid_vec,C4D,wv_i_x,wv_i_y',wv_j_x,wv_j_y'); % important that query vecs have different orientation on this line --> signals to interpn that query vecs are grid vecs in R^n.
         end
