@@ -10,7 +10,6 @@ function out = GPR2D(fr,wv,kfcn,N_sample,N_evaluate,options)
     a = 1;
     
     N_wv = size(wv,1);
-    % N_k = get_N_k(N_wv); % tri
     N_k = sqrt(N_wv); % rect
     
     X = reshape(wv(:,1),N_k,N_k)';

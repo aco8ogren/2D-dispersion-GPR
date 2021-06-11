@@ -15,7 +15,7 @@ isMakeBoxPlots = false;
 isMakeQuantilePlots = true;
 isMakeQuantilePlots2 = true;
 isSaveQuantiles = true;
-eig_idxs = 1:4;
+eig_idxs = 10:2:20;
 covariance_options.isAllowGPU = false;
 covariance_options.isComputeCovarianceGradient = false;
 sigma_GPR = 1e-4;
@@ -279,6 +279,6 @@ if isSaveQuantiles
     q = linspace(0,1,101);
     Q_L2 = quantile(err_L2,q,2);
     Q_H1 = quantile(err_H1,q,2);
-    save('quantile_data','q','Q_L2','Q_H1','N_samples','model_names')
+    save('quantile_data','q','Q_L2','Q_H1','N_samples','model_names','sigma_GPR')
 end
 

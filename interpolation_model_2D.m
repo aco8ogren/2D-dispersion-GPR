@@ -1,14 +1,6 @@
 function out = interpolation_model_2D(fr,wv,N_wv,N_sample,N_evaluate,interpolation_method)
        
     a = 1;
-    
-%     N_wv = size(wv,1);
-%     % N_k = get_N_k(N_wv); % tri
-%     N_k = sqrt(N_wv); % rect
-    
-%     X = reshape(wv(:,1),N_k,N_k)';
-%     Y = reshape(wv(:,2),N_k,N_k)';
-%     Z = reshape(fr,N_k,N_k)';
 
     X = reshape(wv(:,1),N_wv(1),N_wv(2))';
     Y = reshape(wv(:,2),N_wv(1),N_wv(2))';

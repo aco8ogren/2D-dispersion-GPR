@@ -15,7 +15,6 @@ N_h = 7; % number of sample points sampled in the long direction of the rectangl
 a = 1; % lattice parameter
 
 [N_struct,N_eig,N_wv] = size(EIGENVALUE_DATA);
-% N_k = get_N_k(N_wv); % tri
 N_k = sqrt(N_wv); % rect
 N_e = N_k; % number of points to evaluate error on
 

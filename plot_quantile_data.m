@@ -12,7 +12,10 @@ N_samples = containers.Map;
 N_eig = containers.Map;
 
 % load GPR quantile data
-data = load('C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\ground_truth1 quantile data\quantile_data_GPR.mat');
+% data = load('C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\ground_truth1 quantile data\quantile_data_GPR.mat');
+% data = load('C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\ground_truth3 quantile data\quantile_data_GPR_confusing.mat');
+data = load('C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\ground_truth3 quantile data\quantile_data_GPR_ttt.mat');
+
 
 model_name = 'GPR';
 
@@ -28,6 +31,7 @@ N_eig('GPR') = size(data.Q_L2,1);
 
 % load linear interpolation quantile data
 data = load('C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\ground_truth1 quantile data\quantile_data_linear.mat');
+% data = load('C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\ground_truth3 quantile data\quantile_data_linear.mat');
 
 model_name = 'linear';
 

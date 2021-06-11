@@ -1,18 +1,23 @@
-close all;
+clear; close all;
 % =========================================================================
 % MUST BE RUN IN MATLAB R2020a (or maybe a later version would be okay too)
 % =========================================================================
 
 warning('off','MATLAB:MKDIR:DirectoryExists')
 
-isSavePlots = true;
+isSavePlots = false;
 isUseHomemade = true;
 isHighlightFirstStructure = false;
 
 % N_sample = 9; % number of sample points sampled in the long direction of the rectangle for GPR
 % N_samples = 3:2:21;
-N_samples = 3:4:23;
-N_evaluate = 101; % number of points to evaluate error on
+N_samples = 3:8:23;
+N_evaluate = 51; % number of points to evaluate error on
+sigma_GPR = 1e-2;
+
+covariance_options.eig_idxs = NaN; % create field that can be changed later
+covariance_options.isAllowGPU = false;
+covariance_options.isComputeCovarianceGradient = false;
 
 plot_pause = length(N_samples); % Give plots time to resize before trying to fix their border and save them
 
@@ -39,9 +44,11 @@ wv = WAVEVECTOR_DATA(:,:,1);
 WAVEVECTOR_DATA = WAVEVECTOR_DATA(idxs,:,:);
 EIGENVALUE_DATA = EIGENVALUE_DATA(idxs,:,:);
 
-Cs = cov4D(WAVEVECTOR_DATA,EIGENVALUE_DATA);
+% Cs = cov4D(WAVEVECTOR_DATA,EIGENVALUE_DATA);
 
-[N_wv,N_eig,N_struct] = size(EIGENVALUE_DATA);
+[N_wv_tot,N_eig,N_struct] = size(EIGENVALUE_DATA);
+
+N_wv = [length(unique(WAVEVECTOR_DATA(:,1,1))) length(unique(WAVEVECTOR_DATA(:,2,1)))];
 
 f = figure2();
 tl = tiledlayout(4,length(N_samples));
@@ -52,12 +59,14 @@ for plot_idx = 1:4
     end
 end
 
-for N_sample_idx = 1:length(N_samples)
-    N_sample = N_samples(N_sample_idx);
-    pfwb = parfor_wait(N_struct,'Waitbar', true);
-    parfor struct_idx = 1:N_struct
-        for eig_idx = 1:N_eig
-            covariance = Cs{eig_idx}; %#ok<PFBNS>
+for eig_idx = 1:N_eig
+    %             covariance = Cs{eig_idx}; %#ok<PFBNS>
+    covariance_options.eig_idxs = eig_idx;
+    [Cs,C_grads,kfcns,kfcn_grads,X_grid_vec,Y_grid_vec] = get_empirical_covariance(WAVEVECTOR_DATA,EIGENVALUE_DATA,covariance_options);
+    for N_sample_idx = 1:length(N_samples)
+        N_sample = N_samples(N_sample_idx);
+        pfwb = parfor_wait(N_struct,'Waitbar', true);
+        for struct_idx = 1:N_struct
             
             fr = squeeze(EIGENVALUE_DATA(:,eig_idx,struct_idx));
             wv = squeeze(WAVEVECTOR_DATA(:,:,struct_idx));
@@ -65,19 +74,20 @@ for N_sample_idx = 1:length(N_samples)
             options = struct();
             options.isMakePlots = false;
             options.isUseEmpiricalCovariance = true;
+            options.sigma_GPR = sigma_GPR;
             
             if isUseHomemade
-                out_emp = GPR2D_homemade(fr,wv,covariance,N_sample,N_evaluate,options);
+                out_emp = GPR2D_homemade(fr,wv,N_wv,kfcns{eig_idx},N_sample,N_evaluate,options);
             else
-                out_emp = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options);
+                out_emp = GPR2D(fr,wv,N_wv,covariance,N_sample,N_evaluate,options);
             end
             
             options.isUseEmpiricalCovariance = false;
             
             if isUseHomemade
-                out_sqexp = GPR2D_homemade(fr,wv,covariance,N_sample,N_evaluate,options);
+                out_sqexp = GPR2D_homemade(fr,wv,N_wv,kfcns{eig_idx},N_sample,N_evaluate,options);
             else
-                out_sqexp = GPR2D(fr,wv,covariance,N_sample,N_evaluate,options);
+                out_sqexp = GPR2D(fr,wv,N_wv,covariance,N_sample,N_evaluate,options);
             end
             
             e_L2_emp(eig_idx,struct_idx) = out_emp.e_L2;
@@ -96,7 +106,7 @@ for N_sample_idx = 1:length(N_samples)
     % ax(plot_idx) = axes(fig(plot_idx));
     plot(ax(plot_idx,N_sample_idx),jitter(repmat(1:N_eig,N_struct,1)),e_L2_emp','k.')
     title(ax(plot_idx,N_sample_idx),['L2 emp ' title_appendage])
-    if isHighlightFirstStruct
+    if isHighlightFirstStructure
         hold(ax(plot_idx,N_sample_idx),'on'); scatter(ax(plot_idx,N_sample_idx),1:N_eig,e_L2_emp(:,1)','r.');
     end
     
@@ -105,7 +115,7 @@ for N_sample_idx = 1:length(N_samples)
     % ax(plot_idx) = axes(fig(plot_idx));
     plot(ax(plot_idx,N_sample_idx),jitter(repmat(1:N_eig,N_struct,1)),e_H1_emp','k.')
     title(ax(plot_idx,N_sample_idx),['H1 emp ' title_appendage])
-    if isHighlightFirstStruct
+    if isHighlightFirstStructure
         hold(ax(plot_idx,N_sample_idx),'on'); scatter(ax(plot_idx,N_sample_idx),1:N_eig,e_H1_emp(:,1)','r.');
     end
     
@@ -114,7 +124,7 @@ for N_sample_idx = 1:length(N_samples)
     % ax(plot_idx) = axes(fig(plot_idx));
     plot(ax(plot_idx,N_sample_idx),jitter(repmat(1:N_eig,N_struct,1)),e_L2_sqexp','k.')
     title(ax(plot_idx,N_sample_idx),['L2 sqexp ' title_appendage])
-    if isHighlightFirstStruct
+    if isHighlightFirstStructure
         hold(ax(plot_idx,N_sample_idx),'on'); scatter(ax(plot_idx,N_sample_idx),1:N_eig,e_L2_sqexp(:,1)','r.');
     end
     
@@ -123,7 +133,7 @@ for N_sample_idx = 1:length(N_samples)
     % ax(plot_idx) = axes(fig(plot_idx));
     plot(ax(plot_idx,N_sample_idx),jitter(repmat(1:N_eig,N_struct,1)),e_H1_sqexp','k.')
     title(ax(plot_idx,N_sample_idx),['H1 sqexp ' title_appendage])
-    if isHighlightFirstStruct
+    if isHighlightFirstStructure
         hold(ax(plot_idx,N_sample_idx),'on'); scatter(ax(plot_idx,N_sample_idx),1:N_eig,e_H1_sqexp(:,1)','r.');
     end
     

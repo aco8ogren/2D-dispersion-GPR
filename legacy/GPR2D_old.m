@@ -14,7 +14,6 @@ function out = GPR2D_old(data,struct_idx,eig_idx,N_sample,isMakePlots,isUsePolar
     a = 1; % lattice parameter
     
     [N_struct,N_eig,N_wv] = size(EIGENVALUE_DATA);
-    % N_k = get_N_k(N_wv); % tri
     N_k = sqrt(N_wv); % rect
     N_e = 3*N_k; % number of points to evaluate error on
     

@@ -6,15 +6,16 @@ isSavePlots = false; % broken
 plot_folder = '';
 isUseHomemade = true;
 isMeasureRank = false;
+% isPlotSamplePoints = false;
 
 % struct_idx = 3;
-struct_idx = 1;
+struct_idx = 2;
 % eig_idx = 2;
-eig_idx = 13;
-N_sample = 11; % number of sample points sampled in the long direction of the rectangle for GPR
+eig_idx = 1;
+N_sample = 40; % number of sample points sampled in the long direction of the rectangle for GPR
 % N_evaluate = 1001; % number of points to evaluate error on
 N_evaluate = 51;
-sigma_GPR = 1e-16;
+sigma_GPR = 1e-4;
 
 covariance_options.eig_idxs = eig_idx;
 covariance_options.isAllowGPU = false;
@@ -22,11 +23,14 @@ covariance_options.isComputeCovarianceGradient = false;
 
 save_appendage = '';
 
-data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-    '2D-dispersion\OUTPUT\ground_truth output 20-May-2021 17-11-07\DATA N_struct128 N_k201 RNG_offset0 20-May-2021 17-11-07.mat'];
+% data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
+%     '2D-dispersion\OUTPUT\ground_truth output 20-May-2021 17-11-07\DATA N_struct128 N_k201 RNG_offset0 20-May-2021 17-11-07.mat'];
 
 % data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
 %     '2D-dispersion-GPR\OUTPUT\Homog w dataset N_k51\DATA N_struct128 N_k51 RNG_offset0 14-Mar-2021 16-46-17.mat'];
+
+data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
+    '2D-dispersion\OUTPUT\covariance_singularity N_wv51x26 N_disp5000 output 04-Jun-2021 16-31-13\DATA N_struct5000 N_k RNG_offset0 04-Jun-2021 16-31-13.mat'];
 
 % data_train = load(data_path_train,'EIGENVALUE_DATA','WAVEVECTOR_DATA','CONSTITUTIVE_DATA');
 regexp_idx = regexp(data_path_train,'\');
@@ -140,9 +144,9 @@ function plot_output(out,isUseSqexp,isSavePlots,save_appendage,plot_folder)
     ax2 = axes(fig);
     hold on
     surf(out.X_e,out.Y_e,out.Z_pred)
-    scatter3(reshape(out.X_s,1,[]),reshape(out.Y_s,1,[]),reshape(out.Z_s,1,[]),'MarkerFaceColor','r')
+%     scatter3(reshape(out.X_s,1,[]),reshape(out.Y_s,1,[]),reshape(out.Z_s,1,[]),'MarkerFaceColor','r')
     title(['Predicted - ' sqexp_or_empir newline 'L^2 error: ' num2str(out.e_L2) ' || H^1 error: ' num2str(out.e_H1)])
-    view(3)
+    view(2)
 %     colorbar; ax2.CLim = ax1.CLim;
     ax2.XLim = ax1.XLim; ax2.YLim = ax1.YLim; ax2.ZLim = ax1.ZLim;
     fig = fix_pdf_border(fig);
