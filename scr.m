@@ -1,13 +1,7 @@
-clear; close all;
-
-fig = figure;
-
-tiledlayout('flow')
-
-for i = 1:4
-    for j = 1:4
-        nexttile
-        ax(i,j) = gca;
-        scatter(-1.5 + 3*rand*rand(50,1),-1.5 + 3*rand*rand(50,1))
-    end
-end
+clear;
+N_wv = [52 27];
+wv = get_wavevectors(N_wv,1,struct('isTrimRightBoundary',true,'format','list'));
+[X,Y] = get_wavevectors(N_wv,1,struct('isTrimRightBoundary',true,'format','grid'));
+X(1,2) - X(1,1);
+Y(2,1) - Y(1,1);
+abs((X(1,2) - X(1,1)) - (Y(2,1) - Y(1,1)))

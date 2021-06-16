@@ -12,8 +12,6 @@ function C_interp = covariance_function(wv_i,wv_j,query_format,original_C_struct
     C4D = reshape(C,M,N,M,N);
     
     if strcmp(query_format,'scattered')
-        %         wv_i = [wv_i_x, wv_i_y];
-        %         wv_j = [wv_j_x, wv_j_y];
         wv = combvec(wv_i',wv_j'); % gives a 4 x N_combinations array
         C_interp_4D = interpn(X_grid_vec,Y_grid_vec,X_grid_vec,Y_grid_vec,C4D,wv(1,:),wv(2,:),wv(3,:),wv(4,:)); % important that query vecs have same orientation on this line --> signals to interpn that they represent a list of scattered points in R^n.
         [N_h,~] = size(wv_i);

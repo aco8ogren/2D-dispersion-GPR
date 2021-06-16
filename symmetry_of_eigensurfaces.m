@@ -9,6 +9,7 @@ data_path = ['C:\Users\alex\OneDrive - California Institute of Technology\Docume
 N_k = sqrt(N_wv);
 
 symmetry_loss = zeros(N_eig,N_struct);
+boundary_loss = zeros(N_eig,N_struct);
 
 for struct_idx = 1:N_struct
     for eig_idx = 1:N_eig
@@ -17,6 +18,8 @@ for struct_idx = 1:N_struct
         Z = reshape(EIGENVALUE_DATA(:,eig_idx,struct_idx),N_k,N_k);
         Z_flip = flipud(Z);
         symmetry_loss(eig_idx,struct_idx) = LP_norm(X',Y',(Z-Z_flip)',2);
+        boundary_loss(eig_idx,struct_idx) = max(abs(Z(1,:) - Z(end,:)),[],'all');
+        boundary_loss2(eig_idx,struct_idx) = max(abs(Z(2,:) - Z(end - 1,:)),[],'all');
 %         figure
 %         imagesc(Z)
 %         figure
@@ -30,3 +33,8 @@ end
 figure
 boxchart(symmetry_loss')
 
+figure
+boxchart(boundary_loss')
+
+figure
+boxchart(boundary_loss2')

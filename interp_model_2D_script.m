@@ -14,7 +14,7 @@ struct_idx = 2;
 eig_idx = 10;
 N_sample = [40 21]; % number of sample points sampled in the long direction of the rectangle for GPR
 % N_evaluate = [1001 501]; % Number of points to evaluate error on
-sigma_GPR = 1e-2;
+sigma_GPR = 1e-3;
 model_name = 'GPR'; % can be GPR or any kind of interpolation method supported by interp2
 
 covariance_options.eig_idxs = eig_idx;
@@ -35,14 +35,16 @@ data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\
 % data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
 %     '2D-dispersion\OUTPUT\covariance_singularity N_wv101x51 N_disp10000 output 11-Jun-2021 13-24-45\DATA N_struct10000 N_k RNG_offset0 11-Jun-2021 13-24-45.mat'];
 
-[WAVEVECTOR_DATA_TRAIN,EIGENVALUE_DATA_TRAIN] = load_dispersion_dataset(data_path_train);
-
-% [~,N_eig_train,N_struct_train] = size(EIGENVALUE_DATA_TRAIN);
-
-% original_wv_x = unique(sort(WAVEVECTOR_DATA_TRAIN(:,1,1)));
-% original_wv_y = unique(sort(WAVEVECTOR_DATA_TRAIN(:,2,1)));
-
-[Cs,C_grads,kfcns,kfcn_grads] = get_empirical_covariance(WAVEVECTOR_DATA_TRAIN,EIGENVALUE_DATA_TRAIN,covariance_options); %#ok<ASGLU>
+if strcmp(model_name,'GPR')
+    [WAVEVECTOR_DATA_TRAIN,EIGENVALUE_DATA_TRAIN] = load_dispersion_dataset(data_path_train);
+    
+    % [~,N_eig_train,N_struct_train] = size(EIGENVALUE_DATA_TRAIN);
+    
+    % original_wv_x = unique(sort(WAVEVECTOR_DATA_TRAIN(:,1,1)));
+    % original_wv_y = unique(sort(WAVEVECTOR_DATA_TRAIN(:,2,1)));
+    
+    [Cs,C_grads,kfcns,kfcn_grads] = get_empirical_covariance(WAVEVECTOR_DATA_TRAIN,EIGENVALUE_DATA_TRAIN,covariance_options); %#ok<ASGLU>
+end
 
 % data_path_test = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
 %     '2D-dispersion\OUTPUT\ground_truth3 output 28-May-2021 16-41-37\DATA N_struct100 N_k RNG_offset0 28-May-2021 16-41-37.mat'];
@@ -79,13 +81,13 @@ disp('Model analysis results:')
 disp(['e_L2 = ' num2str(out.e_L2)])
 disp(['e_H1 = ' num2str(out.e_H1)])
 % plot_output(out,isSavePlots,save_appendage,plot_folder);
-% 
+%
 % disp('Squared exponential results:')
 % plot_output(out_sqexp,isSavePlots,save_appendage,plot_folder);
-% 
+%
 % function plot_output(out,isSavePlots,save_appendage,plot_folder)
-% 
-%     
+%
+%
 %     if isUseSqexp
 %         save_appendage = [save_appendage 'sqexp'];
 %         sqexp_or_empir = 'sq. exp.';
@@ -93,7 +95,7 @@ disp(['e_H1 = ' num2str(out.e_H1)])
 %         save_appendage = [save_appendage 'empirical'];
 %         sqexp_or_empir = 'empir.';
 %     end
-%     
+%
 %     fig = figure2();
 %     ax1 = axes(fig);
 %     hold('on');
@@ -106,7 +108,7 @@ disp(['e_H1 = ' num2str(out.e_H1)])
 %     if isSavePlots
 %         save_in_all_formats(fig,['true_dispersion_' save_appendage],plot_folder,true)
 %     end
-%     
+%
 %     fig = figure2();
 %     ax2 = axes(fig);
 %     hold on
@@ -117,7 +119,7 @@ disp(['e_H1 = ' num2str(out.e_H1)])
 % %     colorbar; ax2.CLim = ax1.CLim;
 %     ax2.XLim = ax1.XLim; ax2.YLim = ax1.YLim; ax2.ZLim = ax1.ZLim;
 %     fig = fix_pdf_border(fig);
-%     if isSavePlots        
+%     if isSavePlots
 %         save_in_all_formats(fig,['predicted_dispersion_' save_appendage],plot_folder,false)
 %     end
 % end

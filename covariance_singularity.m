@@ -1,7 +1,7 @@
 clear; close all;
 
-data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-    '2D-dispersion\OUTPUT\ground_truth output 20-May-2021 17-11-07\DATA N_struct128 N_k201 RNG_offset0 20-May-2021 17-11-07.mat'];
+% data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
+%     '2D-dispersion\OUTPUT\ground_truth output 20-May-2021 17-11-07\DATA N_struct128 N_k201 RNG_offset0 20-May-2021 17-11-07.mat'];
 
 % data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
 %     '2D-dispersion-GPR\OUTPUT\Homog w dataset N_k51\DATA N_struct128 N_k51 RNG_offset0 14-Mar-2021 16-46-17.mat'];
@@ -21,6 +21,12 @@ data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\
 % data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
 %     '2D-dispersion\OUTPUT\covariance_singularity N_wv51x26 N_disp5000 output 04-Jun-2021 16-31-13\DATA N_struct5000 N_k RNG_offset0 04-Jun-2021 16-31-13.mat'];
 % covariance_options.N_wv = [51 26];
+
+% data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
+%     '2D-dispersion\OUTPUT\covariance_singularity N_wv51x26 N_disp20000 output 10-Jun-2021 14-58-54\DATA N_struct20000 N_k RNG_offset0 10-Jun-2021 14-58-54.mat'];
+
+data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
+    '2D-dispersion\OUTPUT\covariance_singularity N_wv101x51 N_disp10000 output 11-Jun-2021 13-24-45\DATA N_struct10000 N_k RNG_offset0 11-Jun-2021 13-24-45.mat'];
 
 N_samples = 3:51;
 sigmas = [ 0 1e-4 1e-3 1e-2 1e-1 ];
@@ -57,12 +63,14 @@ for eig_idx_idx = eig_idxs
         [~,idxs] = sort(wv(:,2));
         wv = wv(idxs,:);
         C = kfcn(wv,wv,'gridded');
+%         C = nearestSPD(C);
         sizes(eig_idx_idx,N_sample_idx) = size(C,1);
         temp = whos('C');
         memories(eig_idx_idx,N_sample_idx) = temp.bytes/1e9;
         for sigma_idx = 1:length(sigmas)
             sigma = sigmas(sigma_idx);
             MAT = C + sigma^2*eye(size(C));
+%             MAT = nearestSPD(MAT);
             ranks(eig_idx_idx,N_sample_idx,sigma_idx) = rank(MAT);
             rconds(eig_idx_idx,N_sample_idx,sigma_idx) = rcond(MAT);
             norms(eig_idx_idx,N_sample_idx,sigma_idx) = norm(MAT(1,:) - MAT(2,:));

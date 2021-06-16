@@ -7,6 +7,7 @@ warning('off','MATLAB:MKDIR:DirectoryExists')
 % warning('off','MATLAB:handle_graphics:Layout:NoPositionSetInTiledChartLayout')
 
 addpath('../2D-dispersion-optimization-GPR')
+addpath('../2D-dispersion')
 
 isSavePlots = false;
 isUseHomemade = true;
@@ -15,17 +16,13 @@ isMakeBoxPlots = false;
 isMakeQuantilePlots = true;
 isMakeQuantilePlots2 = true;
 isSaveQuantiles = true;
-eig_idxs = 10:2:20;
+eig_idxs = 10;
 covariance_options.isAllowGPU = false;
 covariance_options.isComputeCovarianceGradient = false;
-sigma_GPR = 1e-4;
+sigma_GPR = 1e-2;
 
-% N_sample = 9; % number of sample points sampled in the long direction of the rectangle for GPR
-% N_samples = 3:2:21;
-% N_samples = [7 9 11 13 21 31 51];
-N_samples = 3:51;
-N_samp_res = length(N_samples);
-N_evaluate = 1001; % number of points to evaluate error on (scalar N maps to [N ceil(N/2)])
+N_samples(:,1) = (2:10)'; N_samples(:,2) = ceil(N_samples(:,1)/2) + 1;
+% N_evaluate = 1001; % number of points to evaluate error on (scalar N maps to [N ceil(N/2)])
 
 % model_names = {'GPR','linear','nearest','cubic','makima','spline'};
 model_names = {'GPR'};
@@ -42,14 +39,17 @@ save_appendage = '';
 % data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
 %     '2D-dispersion-GPR\OUTPUT\Homog w dataset N_k51\DATA N_struct128 N_k51 RNG_offset0 14-Mar-2021 16-46-17.mat'];
 
+% data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
+%     '2D-dispersion\OUTPUT\covariance_singularity N_wv51x26 N_disp5000 output 04-Jun-2021 16-31-13\DATA N_struct5000 N_k RNG_offset0 04-Jun-2021 16-31-13.mat'];
+% covariance_options.N_wv = [51 26];
+
 data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-    '2D-dispersion\OUTPUT\covariance_singularity N_wv51x26 N_disp5000 output 04-Jun-2021 16-31-13\DATA N_struct5000 N_k RNG_offset0 04-Jun-2021 16-31-13.mat'];
-covariance_options.N_wv = [51 26];
+    '2D-dispersion\OUTPUT\covariance_singularity N_wv51x26 N_disp20000 output 10-Jun-2021 14-58-54\DATA N_struct20000 N_k RNG_offset0 10-Jun-2021 14-58-54.mat'];
 
 regexp_idx = regexp(data_path_train,'\');
 data_dir = data_path_train(1:(regexp_idx(end)));
 script_start_time = replace(char(datetime),':','-');
-plot_folder = replace([data_dir 'plots/covariance_analysis ' save_appendage ' N_sample_' num2str(min(N_samples)) 'to' num2str(max(N_samples)) ' N_evaluate_' num2str(N_evaluate) ' ' script_start_time '/'],'\','/');
+% plot_folder = replace([data_dir 'plots/covariance_analysis ' save_appendage ' N_sample_' num2str(min(N_samples)) 'to' num2str(max(N_samples)) ' N_evaluate_' num2str(N_evaluate) ' ' script_start_time '/'],'\','/');
 % plot_folder = replace([data_dir 'plots/covar_analys N_samp_' num2str(min(N_samples)) 'to' num2str(max(N_samples)) ' N_eval_' num2str(N_evaluate) ' ' script_start_time '/'],'\','/');
 if isSavePlots
     mkdir(plot_folder)
@@ -58,7 +58,7 @@ end
 
 [WAVEVECTOR_DATA_TRAIN,EIGENVALUE_DATA_TRAIN] = load_dispersion_dataset(data_path_train);
 
-[N_wv_comp,N_eig_train,N_struct] = size(EIGENVALUE_DATA_TRAIN);
+[N_wv_train,N_eig_train,N_struct_train] = size(EIGENVALUE_DATA_TRAIN);
 
 % if isUseGPR
 %     original_wv_x = unique(sort(WAVEVECTOR_DATA_TRAIN(:,1,1)));
@@ -67,24 +67,25 @@ end
 %     [Cs,C_grads,kfcns,kfcn_grads] = get_empirical_covariance(WAVEVECTOR_DATA_TRAIN,EIGENVALUE_DATA_TRAIN,covariance_options); %#ok<ASGLU>
 % end
 
-data_path_test = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-    '2D-dispersion\OUTPUT\ground_truth3 output 28-May-2021 16-41-37\DATA N_struct100 N_k RNG_offset0 28-May-2021 16-41-37.mat'];
-
 % data_path_test = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion\OUTPUT\ground_truth output 20-May-2021 17-11-07\DATA N_struct128 N_k201 RNG_offset0 20-May-2021 17-11-07.mat'];
+%     '2D-dispersion\OUTPUT\ground_truth3 output 28-May-2021 16-41-37\DATA N_struct100 N_k RNG_offset0 28-May-2021 16-41-37.mat'];
+
+data_path_test = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
+    '2D-dispersion\OUTPUT\ground_truth output 20-May-2021 17-11-07\DATA N_struct128 N_k201 RNG_offset0 20-May-2021 17-11-07.mat'];
 
 % data_path_test = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
 %     '2D-dispersion-GPR\OUTPUT\Homog w dataset N_k51\DATA N_struct128 N_k51 RNG_offset0 14-Mar-2021 16-46-17.mat'];
 
-N_wv = [1001 501]; % resolution of the test data
+% N_wv = [1001 501]; % resolution of the test data
 
 [WAVEVECTOR_DATA,EIGENVALUE_DATA] = load_dispersion_dataset(data_path_test);
 
-[N_wv_comp,N_eig_test,N_struct] = size(EIGENVALUE_DATA);
-assert(prod(N_wv) == N_wv_comp)
+N_evaluate = [numel(unique(WAVEVECTOR_DATA(:,1,1))) numel(unique(WAVEVECTOR_DATA(:,2,1)))];
 
-err_L2 = zeros(length(eig_idxs),N_struct,length(model_names),N_samp_res);
-err_H1 = zeros(length(eig_idxs),N_struct,length(model_names),N_samp_res);
+[N_wv_test,N_eig_test,N_struct_test] = size(EIGENVALUE_DATA);
+
+err_L2 = zeros(length(eig_idxs),N_struct_test,length(model_names),size(N_samples,1));
+err_H1 = zeros(length(eig_idxs),N_struct_test,length(model_names),size(N_samples,1));
 
 for eig_idx = eig_idxs
     %     C_struct = struct();
@@ -111,7 +112,7 @@ for eig_idx = eig_idxs
     wb = waitbar(0,['Processing eig\_idx = ' num2str(eig_idx)]);
     for N_sample_idx = 1:length(N_samples)
         N_sample = N_samples(N_sample_idx);
-        for struct_idx = 1:N_struct
+        for struct_idx = 1:N_struct_test
             fr = squeeze(EIGENVALUE_DATA(:,eig_idx,struct_idx));
             wv = squeeze(WAVEVECTOR_DATA(:,:,struct_idx));
             
@@ -122,9 +123,9 @@ for eig_idx = eig_idxs
             
             for model_idx = model_idxs
                 if strcmp(model_names{model_idx},'GPR')
-                    out = GPR2D_homemade(fr,wv,N_wv,kfcn,N_sample,N_evaluate,options);
+                    out = GPR2D_homemade(fr,wv,N_wv,kfcn,[N_sample ceil(N_sample/2)+1],N_evaluate,options);
                 else
-                    out = interpolation_model_2D(fr,wv,N_wv,N_sample,N_evaluate,model_names{model_idx});
+                    out = interpolation_model_2D(fr,wv,N_wv,[N_sample ceil(N_sample/2)+1],N_evaluate,model_names{model_idx});
                 end
                 err_L2(eig_idx,struct_idx,model_idx,N_sample_idx) = out.e_L2;
                 err_H1(eig_idx,struct_idx,model_idx,N_sample_idx) = out.e_H1;
@@ -141,15 +142,15 @@ end
 if isMakeBoxPlots
     temp = categorical(model_names,model_names);
     temp = permute(temp,[1 3 2 4]);
-    model_categories = repmat(temp,1,N_struct,1,1);
+    model_categories = repmat(temp,1,N_struct_test,1,1);
     
     fig = [figure() figure()];
     
     for err_idx = 1:2
         figure(fig(err_idx))
-        tiledlayout(N_eig,N_samp_res)
+        tiledlayout(N_eig,size(N_samples,1))
         for eig_idx = 1:N_eig
-            for N_sample_idx = 1:N_samp_res
+            for N_sample_idx = 1:size(N_samples,1)
                 nexttile;
                 ax(eig_idx,N_sample_idx) = gca();
             end
@@ -164,7 +165,7 @@ if isMakeBoxPlots
         end
         
         for eig_idx = eig_idxs
-            for N_sample_idx = 1:N_samp_res
+            for N_sample_idx = 1:size(N_samples,1)
                 row_idx = eig_idx;
                 col_idx = N_sample_idx;
                 b(row_idx,col_idx) = boxchart(ax(row_idx,col_idx),reshape(model_categories,[],1),reshape(err(eig_idx,:,:,N_sample_idx),[],1));
