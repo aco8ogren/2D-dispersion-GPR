@@ -29,10 +29,8 @@ data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\
 %     '2D-dispersion\OUTPUT\covariance_singularity N_wv101x51 N_disp10000 output 11-Jun-2021 13-24-45\DATA N_struct10000 N_k RNG_offset0 11-Jun-2021 13-24-45.mat'];
 
 N_samples = 3:51;
-sigmas = [ 0 1e-4 1e-3 1e-2 1e-1 ];
-% kernel_type = 'squared exponential';
-
-% row_idxs = [100 101];
+N_evaluate = 51;
+sigma = 1e-2;
 
 [WAVEVECTOR_DATA,EIGENVALUE_DATA] = load_dispersion_dataset(data_path_train);
 
@@ -42,13 +40,6 @@ covariance_options.isComputeCovarianceGradient = false;
 covariance_options.isAllowGPU = false;
 eig_idxs = 1:N_eig;
 
-ranks = zeros(length(eig_idxs),length(N_samples),length(sigmas));
-conds = zeros(length(eig_idxs),length(N_samples),length(sigmas));
-rconds = zeros(length(eig_idxs),length(N_samples),length(sigmas));
-sizes = zeros(length(eig_idxs),length(N_samples));
-memories = zeros(length(eig_idxs),length(N_samples));
-norms = zeros(length(eig_idxs),length(N_samples),length(sigmas));
-
 for eig_idx_idx = eig_idxs
     eig_idx = eig_idxs(eig_idx_idx);
     covariance_options.eig_idxs = eig_idx;
@@ -56,26 +47,59 @@ for eig_idx_idx = eig_idxs
     kfcn = kfcns{1};
     for N_sample_idx = 1:length(N_samples)
         N_sample = N_samples(N_sample_idx);
-        [X,Y] = meshgrid(linspace(-pi,pi,N_sample),linspace(0,pi,ceil(N_sample/2)));
-        X(:,end) = []; % chop off redundant points
-        Y(:,end) = []; % chop off redundant points
-        wv = [reshape(X,[],1) reshape(Y,[],1)];
-        [~,idxs] = sort(wv(:,2));
-        wv = wv(idxs,:);
-        C = kfcn(wv,wv,'gridded');
+        [X_s,Y_s] = meshgrid(linspace(-pi,pi,N_sample),linspace(0,pi,ceil(N_sample/2)));
+%         X_s(:,end) = []; % chop off redundant points on right
+%         Y_s(:,end) = []; % chop off redundant points on right
+        X_s(:,1) = []; % chop off redundant points on left
+        Y_s(:,1) = []; % chop off redundant points on left
+        wv_s = [reshape(X_s,[],1) reshape(Y_s,[],1)];
+        [~,idxs] = sort(wv_s(:,2));
+        wv_s = wv_s(idxs,:);
+%         wv_s(wv_s(:,1)>0 & wv_s(:,2) == pi,:) = []; % chop off points on the right side of the top row
+%         wv_s(wv_s(:,1)>0 & wv_s(:,2) == 0,:) = []; % chop off points on the right side of the bottom row
+        wv_s(wv_s(:,1)<0 & wv_s(:,2) == pi,:) = []; % chop off points on the left side of the top row
+        wv_s(wv_s(:,1)<0 & wv_s(:,2) == 0,:) = []; % chop off points on the left side of the bottom row
+        
+        [X_e,Y_e] = meshgrid(linspace(-pi,pi,N_evaluate),linspace(0,pi,ceil(N_evaluate/2)));
+        wv_e = [reshape(X_e,[],1) reshape(Y_e,[],1)];
+        [~,idxs] = sort(wv_e(:,2));
+        wv_e = wv_e(idxs,:);
+        
+        C_sample = kfcn(wv_s,wv_s,'gridded');
+        C_evaluate = kfcn(wv_e,wv_e,'gridded');
+        C_mix1 = kfcn(wv_e,wv_s,'gridded');
+        C_mix2 = kfcn(wv_s,wv_e,'gridded');
+
+        covar = C_evaluate - C_mix1*((C_sample + sigma^2*eye(size(C_sample)))\C_mix2);
+        variances = diag(covar);
+        variances_normalized = (variances + min(variances) + 1)/range(variances);
+        V = reshape(variances,26,51);
+%         idxs = ones(size(V));
+%         idxs(2:(end-1),2:(end-1)) = 0;
+%         V(~idxs) = NaN;
+        figure
+        hold on
+        
+        imagesc(wv_e(:,1),wv_e(:,2),V)
+        set(gca,'YDir','normal')
+        scatter(wv_s(:,1),wv_s(:,2),'MarkerFaceColor','r')
+        colorbar
+        daspect([1 1 1])
+        axis tight
+            
 %         C = nearestSPD(C);
-        sizes(eig_idx_idx,N_sample_idx) = size(C,1);
-        temp = whos('C');
-        memories(eig_idx_idx,N_sample_idx) = temp.bytes/1e9;
-        for sigma_idx = 1:length(sigmas)
-            sigma = sigmas(sigma_idx);
-            MAT = C + sigma^2*eye(size(C));
-%             MAT = nearestSPD(MAT);
-            ranks(eig_idx_idx,N_sample_idx,sigma_idx) = rank(MAT);
-            rconds(eig_idx_idx,N_sample_idx,sigma_idx) = rcond(MAT);
-            norms(eig_idx_idx,N_sample_idx,sigma_idx) = norm(MAT(1,:) - MAT(2,:));
-            norms_normalized(eig_idx_idx,N_sample_idx,sigma_idx) = norm((MAT(1,:) - MAT(2,:))/max(MAT(1,:)));
-        end
+%         sizes(eig_idx_idx,N_sample_idx) = size(C,1);
+%         temp = whos('C');
+%         memories(eig_idx_idx,N_sample_idx) = temp.bytes/1e9;
+%         for sigma_idx = 1:length(sigmas)
+%             sigma = sigmas(sigma_idx);
+%             MAT = C + sigma^2*eye(size(C));
+% %             MAT = nearestSPD(MAT);
+%             ranks(eig_idx_idx,N_sample_idx,sigma_idx) = rank(MAT);
+%             rconds(eig_idx_idx,N_sample_idx,sigma_idx) = rcond(MAT);
+%             norms(eig_idx_idx,N_sample_idx,sigma_idx) = norm(MAT(1,:) - MAT(2,:));
+%             norms_normalized(eig_idx_idx,N_sample_idx,sigma_idx) = norm((MAT(1,:) - MAT(2,:))/max(MAT(1,:)));
+%         end
     end
 end
 
