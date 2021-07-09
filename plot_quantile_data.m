@@ -6,85 +6,75 @@ Q = containers.Map;
 sample_resolutions = containers.Map;
 eig_idxs = containers.Map;
 
-% zeros(length(eig_idxs),length(struct_idxs),length(model_names),size(sample_resolutions,1),length(sigmas))
-
-% QQ plot along quantiles
-% Plot: X:
-
-% Plot: X: eig_idx Y: error at a single quantile & sample resolution.
-% Remaining variables: models, sigmas -- maybe I should collapse them...
-
-% Plot: X: sample resolution Y: error at a single quantile 
-% Remaining variables: models, eig_idxs (can be handled by two colormaps)
-
-% Plot: X: sample resolution Y: error at a single quantile averaged over
-% eig_idxs
-% Remaining variables: models,
 
 % load GPR quantile data
 % data = load('C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\ground_truth1 quantile data\quantile_data_GPR.mat');
 % data = load('C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\ground_truth3 quantile data\quantile_data_GPR_confusing.mat');
 % data = load('C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\ground_truth3 quantile data\quantile_data_GPR_ttt.mat');
 
-datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\'...
-    'OUTPUT\error_analysis_data\test\error_analysis_data1.mat']);
+% datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\'...
+%     'OUTPUT\error_analysis_data\test\error_analysis_data1.mat']);
 
-datas{2} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\'...
-    'OUTPUT\error_analysis_data\test\error_analysis_data2.mat']);
+% datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\'...
+%     'OUTPUT\error_analysis_data\error_analysis_data_up_to_128_out_of_sample.mat']);
 
-% model_name = 'GPR';
+% datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\'...
+%     'OUTPUT\error_analysis_data\error_analysis_data_up_to_1326_out_of_sample.mat']);
 
+% datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\'...
+%     'OUTPUT\error_analysis_data\error_analysis_data_up_to_1326_orig_test_set.mat']);
 
+% datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\'...
+%     'OUTPUT\error_analysis_data\error_analysis_data_up_to_128_in_sample.mat']);
 
-% Q([model_name ' L2']) = squeeze(data.Q_L2(:,quantile_idx,model_idx,:,sigma_idx)); % all eig_idxs and all sample_resolutions
-% Q([model_name ' H1']) = squeeze(data.Q_H1(:,quantile_idx,model_idx,:,sigma_idx)); % all eig_idxs and all sample_resolutions
+% datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\'...
+%     'OUTPUT\error_analysis_data\error_analysis_data_up_to_1326_in_sample.mat']);
 
-% sample_resolutions('GPR') = data.N_samples;
-% sample_resolutions(model_name) =  data.sample_resolutions;
-% eig_idxs(model_name) = data.eig_idxs;
+% datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\'...
+%     'OUTPUT\error_analysis_data\error_analysis_data_newest.mat']);
 
-% load linear interpolation quantile data
-% data = load('C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\ground_truth1 quantile data\quantile_data_linear.mat');
-% data = load('C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\ground_truth3 quantile data\quantile_data_linear.mat');
-% data = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\error_analysis_data\test\error_analysis_data2.mat']);
+% datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\'...
+%     'OUTPUT\error_analysis_data\error_analysis_data_newest_sigma0.mat']);
 
-% model_name = 'GPR';
+% datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
+%     '2D-dispersion-GPR\OUTPUT\error_analysis_data\error_analysis_data_LD_1326_1.mat']);
 
-% quantile_idx = find(data.q == quantile_of_interest);
-% sigma_idx = 1; % It shouldn't matter what sigma_idx is here since the model is linear
-% model_idx = find(strcmp(data.model_names,model_name));
-% assert(~isempty(quantile_idx))
-% assert(~isempty(sigma_idx))
-% assert(~isempty(model_idx))
-% 
-% Q([model_name ' L2']) = squeeze(data.Q_L2(:,quantile_idx,model_idx,:,sigma_idx));
-% Q([model_name ' H1']) = squeeze(data.Q_H1(:,quantile_idx,model_idx,:,sigma_idx));
+datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
+    '2D-dispersion-GPR\OUTPUT\error_analysis_data\error_analysis_data_gold1.mat']);
 
-% sample_resolutions('linear') = data.N_samples;
-% sample_resolutions('linear') = data.sample_resolutions;
+% datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
+%     '2D-dispersion-GPR\error_analysis_data.mat']);
 
-% eig_idxs('linear') = data.eig_idxs;
+% datas{2} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\'...
+%     'OUTPUT\error_analysis_data\test\error_analysis_data2.mat']);
 
+% In group format
+% sigmas_of_interest = {1e-2, NaN};
+% model_names = {'GPR','linear'};
+colormap_names = {'cool','autumn'}; % cool, autumn
+data_idxs = [1 1]; % indicates which dataset to draw from for the group_idx group. data_idx(group_idx) will be called later.
+inner_group_idxs = [1 2];
+quantiles_of_interest = 0.95*ones(length(data_idxs),1);
 
+N_outer_group = length(data_idxs); % Should assert that this is the length of the sig of int and quant of int also and data idxs
 
-quantiles_of_interest = 0.95*ones(length(datas),1);
-sigmas_of_interest = [1e-2 1e-3];
-model_names = {'GPR','GPR'};
-colormap_names = {'cool','autumn'};
-data_idxs = [1 2];
-
-N_group = length(model_names); % Should assert that this is the length of the sig of int and quant of int also and data idxs
-
-legend_name = @(eig_idx,quantile_of_interest,model_name,sample_resolution,sigma_of_interest) ['GPR w/ \sigma = 1e' num2str(log10(sigma_of_interest))];
-eig_idx = [];
+legend_name_functions = {...
+    @(eig_idx,quantile_of_interest,model_name,sample_resolution,sigma) ...
+    [model_name ' w/ \sigma = 1e' num2str(log10(sigma)) ' eig\_idx = ' num2str(eig_idx)],...
+    @(eig_idx,quantile_of_interest,model_name,sample_resolution,sigma) ...
+    [model_name ' eig\_idx = ' num2str(eig_idx)]...
+    };
+eig_idx = []; % should these empty initializations be in the for outer_group_idx loop?
 quantile_of_interest = [];
 model_name = [];
 sample_resolution = [];
 sigma_of_interest = [];
 
 colors = cell(0,0);
-for group_idx = 1:N_group
-    colors{group_idx} = get_N_colors(colormap_names{group_idx},length(datas{group_idx}.eig_idxs));
+for outer_group_idx = 1:N_outer_group
+    data_idx = data_idxs(outer_group_idx);
+    inner_group_idx = inner_group_idxs(outer_group_idx);
+    colors{outer_group_idx} = get_N_colors(colormap_names{outer_group_idx},length(datas{data_idx}.eig_idxs_iter{inner_group_idx}));
 end
 
 markers = {'none','none'};
@@ -98,52 +88,70 @@ hold on
 figs(2) = figure;
 hold on
 
-for group_idx = 1:N_group
-        
-    data_idx = data_idxs(group_idx);
-    quantile_of_interest = quantiles_of_interest(group_idx);
-    sigma_of_interest = sigmas_of_interest(group_idx);
+
+for err_idx = 1:2
+    err_name = err_names{err_idx};
+    figure(figs(err_idx));
+    plot_counter = 0;
+    clear p
+    for outer_group_idx = 1:N_outer_group
+    
+    data_idx = data_idxs(outer_group_idx);
+    inner_group_idx = inner_group_idxs(outer_group_idx);
+    quantile_of_interest = quantiles_of_interest(outer_group_idx);
+%     sigma_of_interest = sigmas_of_interest{outer_group_idx};
     
     data = datas{data_idx};
     
+    inner_group_idx = inner_group_idxs(outer_group_idx);
+    
     quantile_idx = find(data.q == quantile_of_interest);
-    if ~isnan(sigma_of_interest)
-        sigma_idx = find(data.sigmas == sigma_of_interest);
-    else
-        sigma_idx = 1;
-    end
-    model_idx = find(strcmp(data.model_names,model_names{group_idx}));
+    
+    sigma = data.sigmas{inner_group_idx};
+    
+    % sigma_idx no longer exists.
+%     if ~isnan(sigma_of_interest)
+%     sigma_idx = find([data.sigmas{:}] == sigma_of_interest);
+%     else
+%         sigma_idx = 1;
+%     end
+%     model_idx = find(strcmp(data.model_names,model_names{outer_group_idx}));
     assert(~isempty(quantile_idx))
-    assert(~isempty(sigma_idx))
-    assert(~isempty(model_idx))
     
-    Q('L2') = squeeze(data.Q_L2(:,quantile_idx,model_idx,:,sigma_idx));
-    Q('H1') = squeeze(data.Q_H1(:,quantile_idx,model_idx,:,sigma_idx));
+    % sigma_idx and model_idx are no longer a thing
+%     assert(~isempty(sigma_idx))
+%     assert(~isempty(model_idx))
     
-    for err_idx = 1:2
-        err_name = err_names{err_idx};
-        figure(figs(err_idx));
+    Q('L2') = squeeze(data.Q_L2{inner_group_idx}(:,quantile_idx,:));
+    Q('H1') = squeeze(data.Q_H1{inner_group_idx}(:,quantile_idx,:));
+    
+
         
-        for model_idx = 1:2
-            model_name = model_names{model_idx};
-            eig_idxs_temp = data.eig_idxs;
+%         for model_idx = 1:length(model_names)
+%             model_name = model_names{model_idx};
+        model_name = data.model_names{inner_group_idx};
+%             eig_idxs_temp = data.eig_idxs;
+        eig_idxs_temp = data.eig_idxs_iter{inner_group_idx};
             for eig_idx_idx = 1:length(eig_idxs_temp)
                 eig_idx = eig_idxs_temp(eig_idx_idx);
 %                 Q_temp = Q([model_name ' ' err_name]);
                 Q_temp = Q(err_name);
-                sample_resolutions_temp = data.sample_resolutions;
-                colors_temp = colors{group_idx};
+%                 sample_resolutions_temp = data.sample_resolutions;
+                sample_resolutions_temp = data.sample_resolutions_iter{inner_group_idx};
+                colors_temp = colors{outer_group_idx};
                 color = colors_temp(eig_idx_idx,:);
-                marker = markers{group_idx};
+                marker = markers{outer_group_idx};
                 p_temp = plot(prod(sample_resolutions_temp,2),Q_temp(eig_idx_idx,:),'color',color,'marker',marker);
-                p(eig_idx_idx,model_idx) = p_temp(1);
-                p(eig_idx_idx,model_idx).DisplayName = ...
-                    legend_name(eig_idx,quantile_of_interest,model_name,sample_resolution,sigma_of_interest);   
+                plot_counter = plot_counter + 1;
+                p(plot_counter) = p_temp(1);
+                legend_name_function = legend_name_functions{outer_group_idx};
+                legend_label = legend_name_function(eig_idx,quantile_of_interest,model_name,sample_resolution,sigma);
+                p(plot_counter).DisplayName = legend_label;   
             end
-        end
+%         end
         set(gca,'yscale','log')
         axis tight
-        legend(reshape(p,[],1),'location',legend_location)
+        legend(p,'location',legend_location)
         title([err_names{err_idx} ' error quantiles ' num2str(quantile_of_interest)])
         xlabel('number of sample points')
         ylabel([err_names{err_idx} ' error'])

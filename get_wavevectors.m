@@ -1,11 +1,16 @@
 function [out1,out2] = get_wavevectors(N_wv,a,options)
     
+    if options.isTrimRightBoundary & strcmp(options.format,'grid')
+        error('Cannot simultaneously trim right boundary AND output in grid format.')
+    end
+    
+    wv = get_IBZ_wavevectors(N_wv,a,'none',1); % Add one pixel of resolution to x direction since it will get trimmed off later.
     if options.isTrimRightBoundary
-        wv = get_IBZ_wavevectors(N_wv + [1 0],a,'none',1); % Add one pixel of resolution to x direction since it will get trimmed off later.
-%         wv = get_IBZ_wavevectors(N_wv,a,'none',1); % *DON'T* add one pixel of resolution to x direction even though one will get trimmed off later.
         wv(wv(:,1) == pi/a,:) = [];
+        wv(wv(:,2) == pi/a & wv(:,1) > 0,:) = [];
+        wv(wv(:,2) == 0 & wv(:,1) > 0,:) = [];
     elseif ~options.isTrimRightBoundary
-        wv = get_IBZ_wavevectors(N_wv,a,'none',1);
+        % Do nothing
     end
     
     if strcmp(options.format,'grid')
