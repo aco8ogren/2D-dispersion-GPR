@@ -28,7 +28,7 @@ data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\
 % data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
 %     '2D-dispersion\OUTPUT\covariance_singularity N_wv101x51 N_disp10000 output 11-Jun-2021 13-24-45\DATA N_struct10000 N_k RNG_offset0 11-Jun-2021 13-24-45.mat'];
 
-N_samples = 3:51;
+N_samples = 21;
 N_evaluate = 51;
 sigma = 1e-2;
 

@@ -27,28 +27,33 @@ warning('off','MATLAB:nearlySingularMatrix');
 % data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
 %     '2D-dispersion\OUTPUT\covariance_singularity N_wv51x26 N_disp20000 output 10-Jun-2021 14-58-54\DATA N_struct20000 N_k RNG_offset0 10-Jun-2021 14-58-54.mat'];
 
-data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-    '2D-dispersion\OUTPUT\covariance_singularity N_wv101x51 N_disp10000 output 11-Jun-2021 13-24-45\DATA N_struct10000 N_k RNG_offset0 11-Jun-2021 13-24-45.mat'];
-
 % data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion\OUTPUT\light_dataset output 01-Jul-2021 17-32-47\DATA N_disp1000 N_wv51x26 01-Jul-2021 17-32-47.mat'];
+%     '2D-dispersion\OUTPUT\gold_dataset4x4 output 11-Jun-2021 13-24-45\DATA N_wv101x51 N_disp10000 RNG_offset0 11-Jun-2021 13-24-45.mat'];
 
-N_sample = 1326;
-N_evaluate = [101 NaN]; N_evaluate(2) = ceil(N_evaluate(1)/2);
+% data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+%     'gold8x8_dataset output 11-Jul-2021 19-02-27\DATA N_disp9900 N_wv101x51 RNG_offset100 11-Jul-2021 19-02-27.mat'];
+
+data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
+    '2D-dispersion\OUTPUT\light_dataset output 01-Jul-2021 17-32-47\DATA N_disp1000 N_wv51x26 01-Jul-2021 17-32-47.mat'];
+
+N_sample = 2000;
+N_evaluate = [51 NaN]; N_evaluate(2) = ceil(N_evaluate(1)/2);
 sigma = 0;
 rcond_tol = 1e-16;
 
 isPause = false;
 isPlot = false;
 
+disp('Loading training set...')
 [WAVEVECTOR_DATA,EIGENVALUE_DATA] = load_dispersion_dataset(data_path_train);
+disp('done.')
 
 [N_wv,N_eig,N_struct] = size(EIGENVALUE_DATA);
 
 covariance_options.isComputeCovarianceGradient = false;
 covariance_options.isAllowGPU = false;
 % eig_idxs = 1:N_eig;
-eig_idxs = 1:10;
+eig_idxs = 1:5;
 
 [X_e,Y_e] = meshgrid(linspace(-pi,pi,N_evaluate(1)),linspace(0,pi,N_evaluate(2)));
 wv_e = [reshape(X_e,[],1) reshape(Y_e,[],1)];
@@ -57,7 +62,6 @@ wv_e = wv_e(idxs,:);
 
 figure
 tiledlayout('flow')
-
 
 sample_orders = nan(N_sample,2,length(eig_idxs));
 ranks = nan(length(eig_idxs),N_sample);

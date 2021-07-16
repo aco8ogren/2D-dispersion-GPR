@@ -19,4 +19,7 @@ function model = create_GPR_model3(x_train,y_train,sigma,kfcn,kfcn_grad,train_fo
 %     M = (kfcn(x_train,x_train) + sigma^2*eye(size(x_train,1),size(x_train,1)));
 %     model.grad_dxdy = @(x_pred) cat(3,kfcn_grad(x_pred,x_train,1)/M, kfcn_grad(x_pred,x_train,2)/M);
     model.grad_dxdy = @(x_pred,query_format) get_grad_dxdy(x_pred,x_train,sigma,kfcn,kfcn_grad,query_format);
+    
+%     model.posterior_covariance = @(x_pred,query_format) kfcn(x_pred,x_pred,query_format) - K(x_pred,x_train,query_format)*K(x_train,x_train,train_format)\K(x_train,x_pred,query_format);
+%     model.posterior_variance = @(x_pred,query_format)
 end

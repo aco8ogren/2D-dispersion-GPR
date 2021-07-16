@@ -55,7 +55,11 @@ function out = interp_model_2D(fr,wv,model_options)
         x_train = wv_s;
         y_train = fr_s;
         model = create_GPR_model3(x_train,y_train,model_options.sigma,model_options.kfcn,model_options.kfcn_grad,model_options.train_format);
-        fr_pred = model.pred(wv_e,model_options.predict_format)';
+        if strcmp(model_options.predict_format,'scattered - precomputed combvec')
+            fr_pred = model.pred(struct('values',model_options.precomputed_combvec,'size',[size(wv_e,1) size(wv_s,1)]),model_options.predict_format)';
+        else
+            fr_pred = model.pred(wv_e,model_options.predict_format)';
+        end
         Z_pred = reshape(fr_pred,[N_evaluate(2) N_evaluate(1)]);
     else
         Z_pred = interp2(X_s,Y_s,Z_s,X_e,Y_e,model_options.model_name);

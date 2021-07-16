@@ -11,11 +11,15 @@ isSavePlots = false; % broken
 plot_folder = '';
 
 struct_idx = 2;
-eig_idx = 10;
-N_sample = [40 21]; % number of sample points sampled in the long direction of the rectangle for GPR
+eig_idx = 1;
+N_sample = []; % number of sample points sampled in the long direction of the rectangle for GPR
+sample_count = 700;
 % N_evaluate = [1001 501]; % Number of points to evaluate error on
-sigma_GPR = 1e-3;
+sigma_GPR = 0;
 model_name = 'GPR'; % can be GPR or any kind of interpolation method supported by interp2
+sample_format = 'scattered';
+train_format = 'scattered';
+predict_format = 'scattered';
 
 covariance_options.eig_idxs = eig_idx;
 covariance_options.isAllowGPU = false;
@@ -55,6 +59,10 @@ data_path_test = ['C:\Users\alex\OneDrive - California Institute of Technology\D
 % data_path_test = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
 %     '2D-dispersion-GPR\OUTPUT\Homog w dataset N_k51\DATA N_struct128 N_k51 RNG_offset0 14-Mar-2021 16-46-17.mat'];
 
+sample_order_data_path = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\sample_orders\'...
+    'sample_order_data_light_dataset_1326_1e-16.mat'];
+
+sample_order_data = load(sample_order_data_path);
 
 [WAVEVECTOR_DATA,EIGENVALUE_DATA] = load_dispersion_dataset(data_path_test);
 
@@ -69,6 +77,10 @@ if strcmp(model_options.model_name,'GPR')
     model_options.sigma = sigma_GPR;
     model_options.kfcn = kfcns{eig_idx};
     model_options.kfcn_grad = {};
+    model_options.sample_interpolation_format = sample_format;
+    model_options.train_format = train_format;
+    model_options.predict_format = predict_format;
+    model_options.sample_points = sample_order_data.sample_orders(1:sample_count,:,eig_idx);
 else
     % Do nothing if it's an interpolation method?
 end
@@ -80,46 +92,4 @@ model_options
 disp('Model analysis results:')
 disp(['e_L2 = ' num2str(out.e_L2)])
 disp(['e_H1 = ' num2str(out.e_H1)])
-% plot_output(out,isSavePlots,save_appendage,plot_folder);
-%
-% disp('Squared exponential results:')
-% plot_output(out_sqexp,isSavePlots,save_appendage,plot_folder);
-%
-% function plot_output(out,isSavePlots,save_appendage,plot_folder)
-%
-%
-%     if isUseSqexp
-%         save_appendage = [save_appendage 'sqexp'];
-%         sqexp_or_empir = 'sq. exp.';
-%     else
-%         save_appendage = [save_appendage 'empirical'];
-%         sqexp_or_empir = 'empir.';
-%     end
-%
-%     fig = figure2();
-%     ax1 = axes(fig);
-%     hold('on');
-%     surf(out.X_e,out.Y_e,out.Z_e)
-% %     scatter3(reshape(out.X_s,1,[]),reshape(out.Y_s,1,[]),reshape(out.Z_s,1,[]),'MarkerFaceColor','r')
-%     title('True')
-%     view(2)
-% %     colorbar;
-%     fig = fix_pdf_border(fig);
-%     if isSavePlots
-%         save_in_all_formats(fig,['true_dispersion_' save_appendage],plot_folder,true)
-%     end
-%
-%     fig = figure2();
-%     ax2 = axes(fig);
-%     hold on
-%     surf(out.X_e,out.Y_e,out.Z_pred)
-% %     scatter3(reshape(out.X_s,1,[]),reshape(out.Y_s,1,[]),reshape(out.Z_s,1,[]),'MarkerFaceColor','r')
-%     title(['Predicted - ' sqexp_or_empir newline 'L^2 error: ' num2str(out.e_L2) ' || H^1 error: ' num2str(out.e_H1)])
-%     view(2)
-% %     colorbar; ax2.CLim = ax1.CLim;
-%     ax2.XLim = ax1.XLim; ax2.YLim = ax1.YLim; ax2.ZLim = ax1.ZLim;
-%     fig = fix_pdf_border(fig);
-%     if isSavePlots
-%         save_in_all_formats(fig,['predicted_dispersion_' save_appendage],plot_folder,false)
-%     end
-% end
+

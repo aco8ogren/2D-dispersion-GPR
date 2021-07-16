@@ -9,12 +9,9 @@ function out = interpolation_model_2D(fr,wv,N_wv,N_sample,N_evaluate,interpolati
     original_domain_X = X(1,:);
     original_domain_Y = Y(:,1)';
     
-%     [X_s,Y_s] = meshgrid(linspace(-pi/a,pi/a,N_sample),linspace(0,pi/a,ceil(N_sample/2))); % HERE
-%     [X_e,Y_e] = meshgrid(linspace(-pi/a,pi/a,N_evaluate),linspace(0,pi/a,ceil(N_evaluate/2)));
-    
-    out.N_points = prod(N_sample); % This comes prior to updating N_sample because it's meant to track how many points were paid for in dispersion computation.
+    out.N_points = prod(N_sample) - 2*N_sample(1) - N_sample(2) + 2; % This comes prior to updating N_sample because it's meant to track how many points were paid for in dispersion computation.
 
-    N_sample = N_sample + [1 0]; % Allow interpolation model to sample an extra column of points on the right side in the X direction. Because if we assume periodicity, these points can be obtained freely by copying the points on the left side.
+%     N_sample = N_sample + [1 0]; % Allow interpolation model to sample an extra column of points on the right side in the X direction. Because if we assume periodicity, these points can be obtained freely by copying the points on the left side.
     [X_s,Y_s] = get_wavevectors(N_sample,a,struct('isTrimRightBoundary',false,'format','grid'));
     [X_e,Y_e] = get_wavevectors(N_evaluate,a,struct('isTrimRightBoundary',false,'format','grid'));
 
