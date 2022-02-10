@@ -65,7 +65,8 @@ model_options.model_name = model_name;
 model_options.N_sample = N_sample;
 if strcmp(model_options.model_name,'GPR')
     model_options.sigma = sigma_GPR;
-    model_options.kfcn = kfcns{eig_idx};
+%     model_options.kfcn = kfcns{eig_idx};
+    model_options.kfcn = kfcns{1};
     model_options.kfcn_grad = {};
 else
     % Do nothing if it's an interpolation method?

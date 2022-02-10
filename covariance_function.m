@@ -40,7 +40,8 @@ function C_interp = covariance_function(wv_i,wv_j,query_format,C_griddedInterpol
             C_interp_4D = interpn(X_grid_vec,Y_grid_vec,X_grid_vec,Y_grid_vec,C4D_gpu,wv_i_x,wv_i_y',wv_j_x,wv_j_y'); % important that query vecs have different orientation on this line --> signals to interpn that query vecs are grid vecs in R^n.
 %             C_interp_4D = gather(C_interp_4D);
         else
-            C_interp_4D = interpn(X_grid_vec,Y_grid_vec,X_grid_vec,Y_grid_vec,C4D,wv_i_x,wv_i_y',wv_j_x,wv_j_y'); % important that query vecs have different orientation on this line --> signals to interpn that query vecs are grid vecs in R^n.
+%             C_interp_4D = interpn(X_grid_vec,Y_grid_vec,X_grid_vec,Y_grid_vec,C4D,wv_i_x,wv_i_y',wv_j_x,wv_j_y'); % important that query vecs have different orientation on this line --> signals to interpn that query vecs are grid vecs in R^n.
+            C_interp_4D = C_griddedInterpolant({wv_i_x,wv_i_y,wv_j_x,wv_j_y});
         end
         C_interp_4D = permute(C_interp_4D,[2 1 4 3]);
         C_interp = reshape(C_interp_4D,size(wv_i_x,1)*size(wv_i_y,1),size(wv_j_x,1)*size(wv_j_y,1));

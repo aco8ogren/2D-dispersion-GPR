@@ -12,14 +12,13 @@ isPlot = true;
 isSaveData = true;
 
 % Iteratable variables (entered in group format)
-eig_idxs_iter = {1:5}; % can be 'all'
-struct_idxs_iter = {'all'}; % can be 'all'
-model_names = {'GPR'}; % can be 'GPR','linear','nearest','cubic','makima','spline'
-sample_methods = {'scattered'}; % can be 'gridded', 'scattered'. Must be 'gridded' for any model except 'GPR'.
-% sample_resolutions_iter = {[6:5:51]'}; for i = 1:length(sample_resolutions_iter); sample_resolutions_iter{i}(:,2) = ceil(sample_resolutions_iter{i}(:,1)/2); end;
-% sample_resolutions_iter = {[51]}; for i = 1:length(sample_resolutions_iter); sample_resolutions_iter{i}(:,2) = ceil(sample_resolutions_iter{i}(:,1)/2); end;
-% for i = 1:length(sample_resolutions_iter); sample_counts_iter{i} = prod(sample_resolutions_iter{i},2) - 2*floor(sample_resolutions_iter{i}(:,1)/2) - sample_resolutions_iter{i}(:,2) + 2; end; % subtraction to account for trimming, trimming to account for symmetry
-sample_counts_iter = {[10 50 100 400 700]'}; sample_resolutions_iter = {[]};
+eig_idxs_iter = {1:2}; % can be 'all'
+struct_idxs_iter = {2:2:100}; % can be 'all'
+model_names = {'linear'}; % can be 'GPR','linear','nearest','cubic','makima','spline'
+sample_methods = {'gridded'}; % can be 'gridded', 'scattered'. Must be 'gridded' for any model except 'GPR'.
+sample_resolutions_iter = {[6:5:151]'}; for i = 1:length(sample_resolutions_iter); sample_resolutions_iter{i}(:,2) = ceil(sample_resolutions_iter{i}(:,1)/2); end;
+for i = 1:length(sample_resolutions_iter); sample_counts_iter{i} = prod(sample_resolutions_iter{i},2) - 2*floor(sample_resolutions_iter{i}(:,1)/2) - sample_resolutions_iter{i}(:,2) + 2; end; % subtraction to account for trimming, trimming to account for symmetry
+% sample_counts_iter = {[4 34 79 164 254 394 529 724 904 1154 1181]'}; sample_resolutions_iter = {[]};
 sigmas = {0};
 
 temp = [length(eig_idxs_iter) length(struct_idxs_iter) length(model_names) length(sample_methods) length(sample_resolutions_iter) length(sample_counts_iter) length(sigmas)];
@@ -30,115 +29,81 @@ clear temp;
 % Define training sets ====================================================
 
 for group_idx = 1:N_group
+    %     data_path_train_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+    %         'gold4x4_dataset output 11-Jun-2021 13-24-45\DATA N_wv101x51 N_disp10000 RNG_offset0 11-Jun-2021 13-24-45.mat'];
+    %     data_path_train_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+    %         'gold4x4_dataset output 11-Jun-2021 13-24-45\DATA N_wv101x51 N_disp9900 RNG_offset100 11-Jun-2021 13-24-45.mat'];
+    %     data_path_train_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+    %         'gold4x4_dataset_small output 08-Jul-2021 12-54-14\DATA N_disp100 N_wv101x51 RNG_offset0 08-Jul-2021 12-54-14.mat'];
+    %     data_path_train_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+    %         'gold8x8_dataset output 11-Jul-2021 19-02-27\DATA N_disp9900 N_wv101x51 RNG_offset100 11-Jul-2021 19-02-27.mat'];
+    %     data_path_train_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
+    %         '2D-dispersion\OUTPUT\light_dataset output 01-Jul-2021 17-32-47\DATA N_disp1000 N_wv51x26 01-Jul-2021 17-32-47.mat'];
+    %     data_path_train_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+    %         'ultralight_dataset output 16-Jul-2021 10-39-56\DATA N_disp100 N_wv51x26 RNG_offset0 16-Jul-2021 10-39-56.mat'];
+    %     data_path_train_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+    %         'superultralight_dataset1 output 16-Jul-2021 13-46-13\DATA N_disp100 N_wv13x7 RNG_offset0 16-Jul-2021 13-46-13.mat'];
+    %     data_path_train_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+    %         'N_pix4x4 N_ele2x2 N_wv31x16 N_disp1000 N_eig10 offset0 output 02-Oct-2021 01-07-49\DATA 02-Oct-2021 01-07-49.mat'];
 %     data_path_train_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
-%         'gold4x4_dataset output 11-Jun-2021 13-24-45\DATA N_wv101x51 N_disp10000 RNG_offset0 11-Jun-2021 13-24-45.mat'];
-%     data_path_train_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
-%         'gold4x4_dataset output 11-Jun-2021 13-24-45\DATA N_wv101x51 N_disp9900 RNG_offset100 11-Jun-2021 13-24-45.mat'];
-%     data_path_train_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
-%         'gold4x4_dataset_small output 08-Jul-2021 12-54-14\DATA N_disp100 N_wv101x51 RNG_offset0 08-Jul-2021 12-54-14.mat'];
-%     data_path_train_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
-%         'gold8x8_dataset output 11-Jul-2021 19-02-27\DATA N_disp9900 N_wv101x51 RNG_offset100 11-Jul-2021 19-02-27.mat'];
-    data_path_train_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-        '2D-dispersion\OUTPUT\light_dataset output 01-Jul-2021 17-32-47\DATA N_disp1000 N_wv51x26 01-Jul-2021 17-32-47.mat'];
+%         'N_pix4x4 N_ele2x2 N_wv101x51 N_disp10000 N_eig20 offset0 output 11-Jun-2021 13-24-45\DATA N_wv101x51 N_disp9900 RNG_offset100 11-Jun-2021 13-24-45.mat'];
+    data_path_train_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+        'N_pix4x4 N_ele2x2 N_wv151x76 N_disp2000 offset100 output 04-Oct-2021 11-27-08\DATA 04-Oct-2021 11-27-08.mat'];
 end
 
 % Define test sets ========================================================
 
 for group_idx = 1:N_group
+    %     data_path_test_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+    %         'ground_truth3 output 28-May-2021 16-41-37\DATA N_struct100 N_k RNG_offset0 28-May-2021 16-41-37.mat'];
+    %     data_path_test_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+    %         'gold_dataset_small output 08-Jul-2021 12-54-14\DATA N_disp100 N_wv101x51 RNG_offset0 08-Jul-2021 12-54-14.mat'];
+    %     data_path_test_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+    %         'ground_truth4 output 08-Jul-2021 16-18-23\DATA N_disp100 N_wv501x251 RNG_offset0 08-Jul-2021 16-18-23.mat'];
+    %     data_path_test_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+    %         'ground_truth5 4x4 output 14-Jul-2021 21-46-14\DATA N_disp100 N_wv1001x501 RNG_offset0 14-Jul-2021 21-46-14.mat'];
+    %     data_path_test_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
+    %         '2D-dispersion\OUTPUT\light_dataset output 01-Jul-2021 17-32-47\DATA N_disp1000 N_wv51x26 01-Jul-2021 17-32-47.mat'];
+    %     data_path_test_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+    %         'ultralight_dataset output 16-Jul-2021 10-39-56\DATA N_disp100 N_wv51x26 RNG_offset0 16-Jul-2021 10-39-56.mat'];
+    %     data_path_test_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+    %         'superultralight_dataset output 16-Jul-2021 13-46-13\DATA N_disp100 N_wv13x7 RNG_offset0 16-Jul-2021 13-46-13.mat'];
+    %     data_path_test_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+    %         'superultralight_dataset2 output 16-Jul-2021 16-07-08\DATA N_disp100 N_wv13x7 RNG_offset100 16-Jul-2021 16-07-08.mat'];
+    %     data_path_test_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+    %         'superultralight_highres_dataset output 19-Jul-2021 13-38-42\DATA N_disp100 N_wv51x26 RNG_offset200 19-Jul-2021 13-38-42.mat'];
+    %     data_path_test_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+    %         'N_pix4x4 N_ele2x2 N_wv31x16 N_disp100 N_eig10 offset1000 output 02-Oct-2021 01-16-33\DATA 02-Oct-2021 01-16-33.mat'];
+    %     data_path_test_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+    %         'N_pix4x4 N_ele2x2 N_wv31x16 N_disp1000 N_eig10 offset0 output 02-Oct-2021 01-07-49\DATA 02-Oct-2021 01-07-49.mat'];
 %     data_path_test_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
-%         'ground_truth3 output 28-May-2021 16-41-37\DATA N_struct100 N_k RNG_offset0 28-May-2021 16-41-37.mat'];
-%     data_path_test_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
-%         'gold_dataset_small output 08-Jul-2021 12-54-14\DATA N_disp100 N_wv101x51 RNG_offset0 08-Jul-2021 12-54-14.mat'];
-%     data_path_test_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
-%         'ground_truth4 output 08-Jul-2021 16-18-23\DATA N_disp100 N_wv501x251 RNG_offset0 08-Jul-2021 16-18-23.mat'];
-%     data_path_test_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
-%         'ground_truth5 4x4 output 14-Jul-2021 21-46-14\DATA N_disp100 N_wv1001x501 RNG_offset0 14-Jul-2021 21-46-14.mat'];
-    data_path_test_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-        '2D-dispersion\OUTPUT\light_dataset output 01-Jul-2021 17-32-47\DATA N_disp1000 N_wv51x26 01-Jul-2021 17-32-47.mat'];
+%         'N_pix4x4 N_ele2x2 N_wv101x51 N_disp10000 N_eig20 offset0 output 11-Jun-2021 13-24-45\DATA N_wv101x51 N_disp100 offset0 11-Jun-2021 13-24-45.mat'];
+    data_path_test_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+        'N_pix4x4 N_ele2x2 N_wv151x76 N_disp100 N_eig20 offset0 output 20-Jul-2021 11-41-48\DATA N_disp100 N_wv151x76 RNG_offset0 20-Jul-2021 11-41-48.mat'];
 end
 
 % Define sample order =====================================================
 
 for group_idx = 1:N_group
-%     sample_order_path_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\sample_orders\'...
-%         'sample_order_data_gold4x4.mat'];
-%     sample_order_path_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\sample_orders\'...
-%         'sample_order_data_gold8x8_offset100_1326.mat'];
-    sample_order_path_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\sample_orders\'...
-        'sample_order_data_light_dataset_1326_1e-16.mat'];
+    %     sample_order_path_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\sample_orders\'...
+    %         'sample_order_data_gold4x4.mat'];
+    %     sample_order_path_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\sample_orders\'...
+    %         'sample_order_data_gold8x8_offset100_1326.mat'];
+    %     sample_order_path_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\sample_orders\'...
+    %         'sample_order_data_light_dataset_1326_1e-16.mat'];
+    %     sample_order_path_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\sample_orders\'...
+    %         'sample_order_data_ultralight_dataset.mat'];
+    %     sample_order_path_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\sample_orders\'...
+    %         'sample_order_data_superultralight_dataset1.mat'];
+    %     sample_order_path_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\sample_orders\'...
+    %         'sample_order_data_gold8x8_offset100_5000.mat'];
+    %     sample_order_path_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+    %         'N_pix4x4 N_ele2x2 N_wv31x16 N_disp1000 N_eig10 offset0 output 02-Oct-2021 01-07-49\sample_order_data.mat'];
+%     sample_order_path_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+%         'N_pix4x4 N_ele2x2 N_wv101x51 N_disp10000 N_eig20 offset0 output 11-Jun-2021 13-24-45\sample_order_data.mat'];
+    sample_order_path_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
+        'N_pix4x4 N_ele2x2 N_wv151x76 N_disp2000 offset100 output 04-Oct-2021 11-27-08\sample_order_data.mat'];
 end
-
-% =========================================================================
-
-% Datasets ================================================================
-
-% data_path = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
-%     'light_dataset output 01-Jul-2021 17-32-47\DATA N_disp1000 N_wv51x26 01-Jul-2021 17-32-47.mat'];
-%
-% data_path = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
-%     'ground_truth3 output 28-May-2021 16-41-37\DATA N_struct100 N_k RNG_offset0 28-May-2021 16-41-37.mat'];
-%
-% data_path = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
-%     'ground_truth output 20-May-2021 17-11-07\DATA N_struct128 N_k201 RNG_offset0 20-May-2021 17-11-07.mat'];
-%
-% data_path = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
-%     'covariance_singularity N_wv101x51 N_disp10000 output 11-Jun-2021 13-24-45\DATA N_struct10000 N_k RNG_offset0 11-Jun-2021 13-24-45.mat'];
-%
-% data_path = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
-%     'covariance_singularity N_wv51x26 N_disp5000 output 04-Jun-2021 16-31-13\DATA N_struct5000 N_k RNG_offset0 04-Jun-2021 16-31-13.mat'];
-%
-% data_path = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
-%     'covariance_singularity N_wv51x26 N_disp20000 output 10-Jun-2021 14-58-54\DATA N_struct20000 N_k RNG_offset0 10-Jun-2021 14-58-54.mat'];
-
-% data_path__iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
-%     'covariance_singularity N_wv101x51 N_disp10000 output 11-Jun-2021 13-24-45\DATA N_struct10000 N_k RNG_offset0 11-Jun-2021 13-24-45.mat'];
-
-% Training sets ===========================================================
-
-% data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion\OUTPUT\ground_truth output 20-May-2021 17-11-07\DATA N_struct128 N_k201 RNG_offset0 20-May-2021 17-11-07.mat'];
-
-% data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion\OUTPUT\covariance_singularity N_wv51x26 N_disp5000 output 04-Jun-2021 16-31-13\DATA N_struct5000 N_k RNG_offset0 04-Jun-2021 16-31-13.mat'];
-
-% data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion\OUTPUT\covariance_singularity N_wv51x26 N_disp20000 output 10-Jun-2021 14-58-54\DATA N_struct20000 N_k RNG_offset0 10-Jun-2021 14-58-54.mat'];
-
-% data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion\OUTPUT\covariance_singularity N_wv101x51 N_disp10000 output 11-Jun-2021 13-24-45\DATA N_struct10000 N_k RNG_offset0 11-Jun-2021 13-24-45.mat'];
-
-% data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion\OUTPUT\light_dataset output 01-Jul-2021 17-32-47\DATA N_disp1000 N_wv51x26 01-Jul-2021 17-32-47.mat'];
-
-% test sets ===============================================================
-
-% data_path_test = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion\OUTPUT\ground_truth3 output 28-May-2021 16-41-37\DATA N_struct100 N_k RNG_offset0 28-May-2021 16-41-37.mat'];
-
-% data_path_test = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion\OUTPUT\ground_truth output 20-May-2021 17-11-07\DATA N_struct128 N_k201 RNG_offset0 20-May-2021 17-11-07.mat'];
-
-% data_path_test = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion-GPR\OUTPUT\Homog w dataset N_k51\DATA N_struct128 N_k51 RNG_offset0 14-Mar-2021 16-46-17.mat'];
-
-% data_path_test = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion\OUTPUT\covariance_singularity N_wv101x51 N_disp10000 output 11-Jun-2021 13-24-45\DATA N_struct10000 N_k RNG_offset0 11-Jun-2021 13-24-45.mat'];
-
-% data_path_test = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion\OUTPUT\covariance_singularity N_wv51x26 N_disp5000 output 04-Jun-2021 16-31-13\DATA N_struct5000 N_k RNG_offset0 04-Jun-2021 16-31-13.mat'];
-
-% data_path_test = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion\OUTPUT\light_dataset output 01-Jul-2021 17-32-47\DATA N_disp1000 N_wv51x26 01-Jul-2021 17-32-47.mat'];
-
-% =========================================================================
-
-% Sample orders ===========================================================
-
-% sample_order_path_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\sample_orders\'...
-%     'sampling_order_information_LD_1326_1.mat'];
-
-% sample_order_path_iter{group_idx} = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\sample_orders\'...
-%     'sample_order_data_gold1.mat'];
 
 % =========================================================================
 
@@ -218,10 +183,10 @@ for group_idx = 1:N_group
         wb_counter = 0;
         wb = waitbar(0,['Processing eig\_idx = ' num2str(eig_idx)]);
         
-        if strcmp(model_names{group_idx},'GPR')
-            sample_counts = [sample_counts; 
-            sample_counts_iter{group_idx} = sample_counts;
-        end
+        %         if strcmp(model_names{group_idx},'GPR')
+        %             sample_counts = [sample_counts;
+        %             sample_counts_iter{group_idx} = sample_counts;
+        %         end
         
         for sample_idx = 1:size(sample_counts,1)
             if ~strcmp(model_names{group_idx},'GPR')
@@ -242,9 +207,6 @@ for group_idx = 1:N_group
                 struct_idx = struct_idxs(struct_idx_idx);
                 fr = squeeze(EIGENVALUE_DATA_TEST(:,eig_idx,struct_idx));
                 wv = squeeze(WAVEVECTOR_DATA_TEST(:,:,struct_idx));
-                
-                %                 for model_idx = 1:length(model_names)
-                %                     model_name = model_names{model_idx};
                 model_options.model_name = model_name;
                 a = 1;
                 if strcmp(model_name,'GPR')
@@ -264,16 +226,11 @@ for group_idx = 1:N_group
                     model_options.sample_points = get_wavevectors(N_sample,a,struct('isTrimRightBoundary',false,'format','list')); % get them as a list for uniformity.
                     model_options.sample_interpolation_format = 'gridded'; % specify this for speed
                 end
-                
-                %                     for sigma_idx = 1:length(sigmas)
-                %                         sigma = sigmas(sigma_idx);
                 model_options.sigma = sigma;
                 out = interp_model_2D(fr,wv,model_options);
                 err_L2{group_idx}(eig_idx_idx,struct_idx_idx,sample_idx) = out.e_L2;
                 err_H1{group_idx}(eig_idx_idx,struct_idx_idx,sample_idx) = out.e_H1;
-                %                     end
             end
-            %             end
             wb_counter = wb_counter + 1;
             waitbar(wb_counter/size(sample_counts,1),wb)
         end
@@ -296,46 +253,3 @@ if isSaveData
         'data_path_train_iter','data_path_test_iter')
     disp('done.')
 end
-
-error('the end of this script doesn''t work, but don''t worry - the data was saved')
-
-% Plot the qth error quantile for each model & eigensurface
-q = .95;
-Q_L2_temp = quantile(err_L2,q,2);
-Q_H1_temp = quantile(err_H1,q,2);
-cm = lines(length(eig_idxs));
-mm = {'s','d','^','x','*','o'};
-if isPlot
-    clear p
-    for err_idx = 1:2
-        if err_idx == 1
-            Q = Q_L2_temp;
-            err_name = 'L2';
-        elseif err_idx == 2
-            Q = Q_H1_temp;
-            err_name = 'H1';
-        end
-        for sigma_idx = 1:length(sigmas)
-            sigma = sigmas(sigma_idx);
-            
-            for model_idx = 1:length(model_names)
-                figure
-                hold on
-                for eig_idx_idx = 1:length(eig_idxs)
-                    eig_idx = eig_idxs(eig_idx_idx);
-                    p_temp = plot(prod(sample_resolutions,2),squeeze(Q(eig_idx_idx,:,model_idx,:,sigma_idx)),'color',cm(eig_idx_idx,:),'marker',mm{model_idx});
-                    p(eig_idx_idx) = p_temp(1);
-                    p(eig_idx_idx).DisplayName = [model_names{model_idx} ' eig\_idx = ' num2str(eig_idx)];
-                end
-                set(gca,'yscale','log')
-                legend(reshape(p,[],1),'location','northeast')
-                title([err_name ' error quantiles ' regexprep(num2str(q),' +',',') newline model_names{model_idx} ' \sigma = 1e' num2str(log10(sigma))])
-                xlabel('prod(N\_sample)')
-                ylabel([err_name ' error'])
-                grid on
-                grid minor
-            end
-        end
-    end
-end
-

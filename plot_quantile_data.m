@@ -43,21 +43,60 @@ sample_resolutions = containers.Map;
 
 % datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
 %     '2D-dispersion-GPR\OUTPUT\error_analysis_data\error_analysis_data_gold4x4_ground_truth3.mat']);
-% 
+% % 
 % datas{2} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
 %     '2D-dispersion-GPR\OUTPUT\error_analysis_data\error_analysis_data_gold8x8_ground_truth3_partial.mat']);
-% 
+% % 
 % datas{3} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
 %     '2D-dispersion-GPR\OUTPUT\error_analysis_data\error_analysis_data_linear_ground_truth3.mat']);
 % 
 % datas{4} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\error_analysis_data\'...
 %     'error_analysis_data_gold4x4_ground_truth5_partial.mat']);
+% 
+% datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\error_analysis_data\'...
+%     'error_analysis_data_light_dataset_1326_1e-16.mat']);
+% 
+% datas{2} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\error_analysis_data\'...
+%     'error_analysis_data_linear_light_dataset2.mat']);
 
-datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\error_analysis_data\'...
-    'error_analysis_data_light_dataset_1326_1e-16.mat']);
+% datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\error_analysis_data\'...
+%     'error_analysis_data_ultralight_dataset_test_is_train.mat']);
 
-datas{2} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\error_analysis_data\'...
-    'error_analysis_data_linear_light_dataset2.mat']);
+% datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\error_analysis_data\'...
+%     'error_analysis_data_superultralight_dataset_test_is_train.mat']);
+
+% datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\error_analysis_data\'...
+%     'error_analysis_data_superultralight_dataset_out_of_sample.mat']);
+
+% datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\error_analysis_data\'...
+%     'error_analysis_data_sul_sulhr_linear.mat']);
+
+% datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\error_analysis_data\'...
+%     'error_analysis_data_sul_sulhr_cubic.mat']);
+
+% datas{4} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\error_analysis_data\'...
+%     'error_analysis_data_gold8x8_ground_truth3_cubic_covariance_interp.mat']);
+
+% datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
+%     '2D-dispersion-GPR\error_analysis_data.mat']);
+
+% datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\error_analysis_data\'...
+%     'error_analysis_data_train4x4_test4x4_N_wv31x16.mat']);
+
+% datas{2} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\error_analysis_data\'...
+%     'error_analysis_data_N_pix4x4_N_wv31x16_linear.mat']);
+
+% datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\'...
+%     'error_analysis_data\error_analysis_data_N_pix4x4_N_wv101x51.mat']);
+
+% datas{2} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\'...
+%     'error_analysis_data\error_analysis_data_N_pix4x4_N_wv101x51_linear.mat']);
+
+datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\'...
+    'error_analysis_data\error_analysis_data_N_pix4x4_N_wv151x76.mat']);
+
+datas{2} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\'...
+    'error_analysis_data\error_analysis_data_N_pix4x4_N_wv151x76_linear.mat']);
 
 % In group format
 % sigmas_of_interest = {1e-2, NaN};
@@ -71,9 +110,10 @@ isXScaleLog = true;
 
 N_outer_group = length(data_idxs); % Should assert that this is the length of the sig of int and quant of int also and data idxs
 
-% group_names = {'GPR (train 4x4 test 4x4)','GPR (train 8x8 test 8x8)','linear','GPR (train 4x4 test 4x4)'};
-
-group_names = {'GPR (train 4x4 test 4x4 same set)','linear'};
+group_names = {'GPR train 4x4 test 4x4','linear'};
+% group_names = {'GPR (train 4x4 test 8x8)','GPR (train 8x8 test 8x8)','linear',['GPR (train 8x8 test 8x8),' newline 'cubic covariance interpolation']};
+% group_names = {'GPR, train = SUL dataset, test = SUL 2 dataset'};
+% group_names = {'GPR (train 4x4 test 4x4 same set)','linear'};
 
 for group_idx = 1:N_outer_group
     legend_name_functions{group_idx} = @(eig_idx,quantile_of_interest,model_name,group_name,sample_resolution,sigma) group_name;

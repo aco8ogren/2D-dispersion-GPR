@@ -2,42 +2,13 @@ clear; close all;
 
 warning('off','MATLAB:nearlySingularMatrix');
 
-% data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion\OUTPUT\ground_truth output 20-May-2021 17-11-07\DATA N_struct128 N_k201 RNG_offset0 20-May-2021 17-11-07.mat'];
+% data_path_train = "C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\N_pix16x16 N_ele1x1 N_wv31x16 N_disp500 N_eig10 offset2100 output 02-Dec-2021 14-13-34\DATA 02-Dec-2021 14-13-34.mat";
+% data_path_train = "C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\output 13-Jan-2022 17-52-58\DATA N_pix16x16 N_ele1x1 N_wv101x51 N_disp20000 N_eig10 offset2000 13-Jan-2022 17-52-58.mat";
+data_path_train = "C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\debug train output 21-Jan-2022 16-05-00\DATA N_pix8x8 N_ele1x1 N_wv31x16 N_disp100 N_eig5 offset0 21-Jan-2022 16-05-00.mat";
 
-% data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion-GPR\OUTPUT\Homog w dataset N_k51\DATA N_struct128 N_k51 RNG_offset0 14-Mar-2021 16-46-17.mat'];
-
-% data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion\OUTPUT\concatenated_dataset1\concatenated_dataset.mat'];
-% covariance_options.N_wv = [201 201];
-
-% data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion\OUTPUT\covariance_singularity N_wv51x26 N_disp1000 04-Jun-2021 14-37-48\DATA N_struct1000 N_k RNG_offset0 04-Jun-2021 14-37-48.mat'];
-% covariance_options.N_wv = [51 26];
-
-% data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion\OUTPUT\covariance_singularity N_wv31x16 N_disp1000 output 04-Jun-2021 15-35-59\DATA N_struct1000 N_k RNG_offset0 04-Jun-2021 15-35-59.mat'];
-% covariance_options.N_wv = [31 16];
-
-% data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion\OUTPUT\covariance_singularity N_wv51x26 N_disp5000 output 04-Jun-2021 16-31-13\DATA N_struct5000 N_k RNG_offset0 04-Jun-2021 16-31-13.mat'];
-% covariance_options.N_wv = [51 26];
-
-% data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion\OUTPUT\covariance_singularity N_wv51x26 N_disp20000 output 10-Jun-2021 14-58-54\DATA N_struct20000 N_k RNG_offset0 10-Jun-2021 14-58-54.mat'];
-
-% data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-%     '2D-dispersion\OUTPUT\gold_dataset4x4 output 11-Jun-2021 13-24-45\DATA N_wv101x51 N_disp10000 RNG_offset0 11-Jun-2021 13-24-45.mat'];
-
-% data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\'...
-%     'gold8x8_dataset output 11-Jul-2021 19-02-27\DATA N_disp9900 N_wv101x51 RNG_offset100 11-Jul-2021 19-02-27.mat'];
-
-data_path_train = ['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\'...
-    '2D-dispersion\OUTPUT\light_dataset output 01-Jul-2021 17-32-47\DATA N_disp1000 N_wv51x26 01-Jul-2021 17-32-47.mat'];
-
-N_sample = 2000;
-N_evaluate = [51 NaN]; N_evaluate(2) = ceil(N_evaluate(1)/2);
+N_sample = 20;
+disp_idxs = 'all'; % typically set to 'all';
+% N_evaluate = [31 NaN]; N_evaluate(2) = ceil(N_evaluate(1)/2);
 sigma = 0;
 rcond_tol = 1e-16;
 
@@ -45,10 +16,25 @@ isPause = false;
 isPlot = false;
 
 disp('Loading training set...')
-[WAVEVECTOR_DATA,EIGENVALUE_DATA] = load_dispersion_dataset(data_path_train);
+% [WAVEVECTOR_DATA,EIGENVALUE_DATA] = load_dispersion_dataset(data_path_train);
+data = load(data_path_train);
 disp('done.')
 
-[N_wv,N_eig,N_struct] = size(EIGENVALUE_DATA);
+if strcmp(disp_idxs,'all')
+    disp_idxs = 1:size(data.EIGENVALUE_DATA,3);
+end
+
+EIGENVALUE_DATA = data.EIGENVALUE_DATA(:,:,disp_idxs);
+WAVEVECTOR_DATA = data.WAVEVECTOR_DATA(:,:,disp_idxs);
+[~,idxs] = sort(WAVEVECTOR_DATA(:,2,1));
+EIGENVALUE_DATA = EIGENVALUE_DATA(idxs,:,:);
+WAVEVECTOR_DATA = WAVEVECTOR_DATA(idxs,:,:);
+N_evaluate = data.const.N_wv;
+
+[~,N_eig,N_struct] = size(EIGENVALUE_DATA);
+
+N_wv_train(1) = numel(unique(WAVEVECTOR_DATA(:,1,1)));
+N_wv_train(2) = numel(unique(WAVEVECTOR_DATA(:,2,1)));
 
 covariance_options.isComputeCovarianceGradient = false;
 covariance_options.isAllowGPU = false;
@@ -78,6 +64,9 @@ for eig_idx_idx = eig_idxs
     [Cs,C_grads,kfcns,kfcn_grads,Vs,V_grads,vfcns,vfcn_grads,X_grid_vec,Y_grid_vec] = get_empirical_covariance(WAVEVECTOR_DATA,EIGENVALUE_DATA,covariance_options);
     kfcn = kfcns{1};
     vfcn = vfcns{1};
+    
+    [V,D] = eig(reshape(Cs{1},[prod(N_wv_train) prod(N_wv_train)]));
+    covariance_eigenvalues(eig_idx_idx,:) = sort(diag(D),'descend');
     
     nexttile
     title(['eig\_idx = ' num2str(eig_idx)])
@@ -212,9 +201,20 @@ figure
 imagesc(isnan(rconds))
 title('isnan(rconds)')
 xlabel('sample\_idx')
-ylabel('eig_idx_idx')
+ylabel('eig\_idx\_idx')
 
-save('sample_order_data','sample_orders','eig_idxs','sigma','rconds','ranks','final_Vs','data_path_train','N_evaluate')
+figure
+plot(1:size(covariance_eigenvalues,2),covariance_eigenvalues,'.')
+set(gca,'yscale','log')
+ylabel('eigenvalue of covariance matrix')
+xlabel('index of eigenvalue')
+for eig_idx_temp = 1:size(covariance_eigenvalues,1)
+    legend_labels{eig_idx_temp} = ['eig\_idx = ' num2str(eig_idx_temp)];
+end
+legend(legend_labels,'location','northeastoutside')
+
+vars_to_save = {'sample_orders','eig_idxs','sigma','rconds','ranks','final_Vs','data_path_train','N_evaluate','disp_idxs'};
+save('sample_order_data',vars_to_save{:})
 
 
 

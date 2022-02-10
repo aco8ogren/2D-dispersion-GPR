@@ -1,0 +1,10 @@
+Before anything else, convert dispersion_dataset to OOP.
+These should have a specific order that wavevectors and eigenvalues are stored in so that they work with the get_empirical_covariance().
+
+start converting 2D-dispersion-GPR to OOP
+
+Things that can be objects:
+The GPR model
+Interpolation models
+Covariance_analyses? Not sure how to organize these. There's a function, a dataset, interpolation style (scattered vs gridded, linear vs cubic?), variance function, sample order
+Sample order (this should also be renamed to regression point acquisition order or something)

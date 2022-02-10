@@ -29,7 +29,7 @@ function [Cs,C_grads,kfcns,kfcn_grads,Vs,V_grads,vfcns,vfcn_grads,X_grid_vec,Y_g
         eig_idx = covariance_options.eig_idxs(eig_idx_idx);
         temp = cov(squeeze(EIGENVALUE_DATA(:,eig_idx,:))');
         Cs{eig_idx_idx} = reshape(temp,N_wv(1),N_wv(2),N_wv(1),N_wv(2));
-        C_griddedInterpolant{eig_idx_idx} = griddedInterpolant({X_grid_vec,Y_grid_vec,X_grid_vec,Y_grid_vec},Cs{eig_idx_idx},'linear');
+        C_griddedInterpolant{eig_idx_idx} = griddedInterpolant({X_grid_vec,Y_grid_vec,X_grid_vec,Y_grid_vec},Cs{eig_idx_idx},'cubic');
         Vs{eig_idx_idx} = reshape(diag(temp),N_wv(1),N_wv(2));
         original_C_struct(1).C = Cs{eig_idx_idx};
         original_V_struct(1).V = Vs{eig_idx_idx};
