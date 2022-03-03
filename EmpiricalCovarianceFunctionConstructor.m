@@ -3,7 +3,7 @@ classdef EmpiricalCovarianceFunctionConstructor
         dataset_path
         default_query_format char
         precomputed_combvec
-        covariance_matrix
+        covariance_array
         grid_vectors
         wavevector_array_size
         gridded_interpolant
@@ -17,15 +17,16 @@ classdef EmpiricalCovarianceFunctionConstructor
             data = load(obj.dataset_path);
             dispersion_dataset = data.dispersion_dataset;
             obj.wavevector_array_size = dispersion_dataset.wavevector_array_size;
-            obj.grid_vectors = {sort(unique(dispersion_dataset.wavevectors(:,1))),sort(unique(dispersion_dataset.wavevectors(:,2)))};
+            obj.grid_vectors = {sort(unique(dispersion_dataset.wavevector(:,1))),sort(unique(dispersion_dataset.wavevector(:,2)))};
             for band_index = 1:dispersion_dataset.N_band
-                obj.covariance_matrix{band_index} = cov(dispersion_dataset.frequency(:,:,band_index));
+                obj.covariance_array{band_index} = cov(squeeze(dispersion_dataset.frequency(:,band_index,:))');
+                obj.covariance_array{band_index} = reshape(obj.covariance_array{band_index},[obj.wavevector_array_size obj.wavevector_array_size]);
             end
             if isempty(obj.interpolation_method)
                 obj.interpolation_method = 'cubic';
             end
             for band_index = 1:dispersion_dataset.N_band
-                obj.gridded_interpolant{band_index} = griddedInterpolant(obj.grid_vectors,obj.covariance_matrix{band_index},obj.interpolation_method);
+                obj.gridded_interpolant{band_index} = griddedInterpolant({obj.grid_vectors{:},obj.grid_vectors{:}},obj.covariance_array{band_index},obj.interpolation_method);
             end
         end
         function C = evaluate(obj,wv_i,wv_j,query_format)
