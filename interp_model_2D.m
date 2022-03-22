@@ -47,8 +47,8 @@ function out = interp_model_2D(fr,wv,model_options)
     h_x = X_e(1,2) - X_e(1,1); h_y = Y_e(2,1) - Y_e(1,1);
     
     Z_e = interp2(X,Y,Z,X_e,Y_e);
-    if ~all(Z_e == Z,'all')
-        warning('Evaluation points are being interpolated') % Interpolation for evaluation might actually be undesirable, and doesn't really need to be done if I have high resolution 'ground truth' datasets. Maybe interpolation of ground truth should never be done since it requires an interpolation model itself and could be inaccurate.
+    if ~all(Z_e == Z,'all') % I think in the current state, the code does not actually interpolate, since X == X_e and Y == Y_e
+%         warning('Evaluation points are being interpolated') % Interpolation for evaluation might actually be undesirable, and doesn't really need to be done if I have high resolution 'ground truth' datasets. Maybe interpolation of ground truth should never be done since it requires an interpolation model itself and could be inaccurate.
     end
     
     if strcmp(model_options.model_name,'GPR')

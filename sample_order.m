@@ -2,11 +2,9 @@ clear; close all;
 
 warning('off','MATLAB:nearlySingularMatrix');
 
-% data_path_train = "C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\N_pix16x16 N_ele1x1 N_wv31x16 N_disp500 N_eig10 offset2100 output 02-Dec-2021 14-13-34\DATA 02-Dec-2021 14-13-34.mat";
-% data_path_train = "C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\output 13-Jan-2022 17-52-58\DATA N_pix16x16 N_ele1x1 N_wv101x51 N_disp20000 N_eig10 offset2000 13-Jan-2022 17-52-58.mat";
-data_path_train = "C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\debug train output 21-Jan-2022 16-05-00\DATA N_pix8x8 N_ele1x1 N_wv31x16 N_disp100 N_eig5 offset0 21-Jan-2022 16-05-00.mat";
+data_path_train = "C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion\OUTPUT\new train output 17-Mar-2022 16-36-11\DATA N_pix16x16 N_ele1x1 N_wv51x26 N_disp5000 N_eig5 offset0 17-Mar-2022 16-36-11.mat";
 
-N_sample = 20;
+N_sample = 5000;
 disp_idxs = 'all'; % typically set to 'all';
 % N_evaluate = [31 NaN]; N_evaluate(2) = ceil(N_evaluate(1)/2);
 sigma = 0;
@@ -21,7 +19,7 @@ data = load(data_path_train);
 disp('done.')
 
 if strcmp(disp_idxs,'all')
-    disp_idxs = 1:size(data.EIGENVALUE_DATA,3);
+    disp_idxs = 1:size(data.EIGENVALUE_DATA,3); 
 end
 
 EIGENVALUE_DATA = data.EIGENVALUE_DATA(:,:,disp_idxs);
@@ -38,8 +36,8 @@ N_wv_train(2) = numel(unique(WAVEVECTOR_DATA(:,2,1)));
 
 covariance_options.isComputeCovarianceGradient = false;
 covariance_options.isAllowGPU = false;
-% eig_idxs = 1:N_eig;
-eig_idxs = 1:5;
+eig_idxs = 1:N_eig;
+% eig_idxs = 1:5;
 
 [X_e,Y_e] = meshgrid(linspace(-pi,pi,N_evaluate(1)),linspace(0,pi,N_evaluate(2)));
 wv_e = [reshape(X_e,[],1) reshape(Y_e,[],1)];

@@ -92,25 +92,27 @@ sample_resolutions = containers.Map;
 % datas{2} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\'...
 %     'error_analysis_data\error_analysis_data_N_pix4x4_N_wv101x51_linear.mat']);
 
-datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\'...
-    'error_analysis_data\error_analysis_data_N_pix4x4_N_wv151x76.mat']);
+% datas{1} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\'...
+%     'error_analysis_data\error_analysis_data_N_pix4x4_N_wv151x76.mat']);
+% 
+% datas{2} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\'...
+%     'error_analysis_data\error_analysis_data_N_pix4x4_N_wv151x76_linear.mat']);
 
-datas{2} = load(['C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\'...
-    'error_analysis_data\error_analysis_data_N_pix4x4_N_wv151x76_linear.mat']);
+datas{1} = load("C:\Users\alex\OneDrive - California Institute of Technology\Documents\Graduate\Research\2D-dispersion-GPR\OUTPUT\error_analysis_data\error_analysis_data_new_ID_ss.mat");
 
 % In group format
 % sigmas_of_interest = {1e-2, NaN};
 % model_names = {'GPR','linear'};
-colormap_names = {'cool','autumn'}; % cool, autumn
-data_idxs = [1 2]; % indicates which dataset to draw from for the group_idx group. data_idx(group_idx) will be called later.
-inner_group_idxs = [1 1];
+colormap_names = {'cool'}; % cool, autumn
+data_idxs = [1 1 1 1 1 1 1 1 1]; % indicates which dataset to draw from for the group_idx group. data_idx(group_idx) will be called later.
+inner_group_idxs = [1 2 3 4 5 6 7 8 9];
 quantiles_of_interest = 0.95*ones(length(data_idxs),1);
 isAverageOverEigenvalue = true;
 isXScaleLog = true;
 
 N_outer_group = length(data_idxs); % Should assert that this is the length of the sig of int and quant of int also and data idxs
 
-group_names = {'GPR train 4x4 test 4x4','linear'};
+group_names = {'50','100','250','500','1000','2000','3000','4000','5000'};
 % group_names = {'GPR (train 4x4 test 8x8)','GPR (train 8x8 test 8x8)','linear',['GPR (train 8x8 test 8x8),' newline 'cubic covariance interpolation']};
 % group_names = {'GPR, train = SUL dataset, test = SUL 2 dataset'};
 % group_names = {'GPR (train 4x4 test 4x4 same set)','linear'};
